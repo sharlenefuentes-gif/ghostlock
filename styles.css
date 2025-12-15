@@ -1,5 +1,5 @@
-:root{
-  --bg-color:#000;
+:root {
+  --bg-color: #000;
   --glass: rgba(255,255,255,0.03);
   --accent: #0a84ff;
   --indicator-bg: rgba(0,0,0,0.5);
@@ -9,107 +9,201 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--bg-color);color:#fff}
-.app{display:flex;flex-direction:column;min-height:100vh}
-
-/* Controls (hidden by default; shown when dev-mode + triple-tap) */
-.controls{
-  display:flex;gap:10px;padding:10px;background:#071022;border-bottom:1px solid rgba(255,255,255,0.04);
-  align-items:center;flex-wrap:wrap;font-size:13px;color:#cdd6e0;
+* { box-sizing: border-box; }
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg-color);
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-.controls.hidden { display:none !important; }
-.controls label{display:flex;gap:6px;align-items:center}
+
+/* App shell */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* Controls (hidden by default) */
+.controls {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: #071022;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #cdd6e0;
+}
+.controls.hidden { display: none !important; }
+.controls label { display: flex; gap: 6px; align-items: center; }
 
 /* Lockscreen area */
-.lockscreen{
-  position:relative;flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:flex-start;padding-top:40px;background-size:cover;background-position:center;
-  transition:background-image .2s ease;min-height:60vh;
+.lockscreen {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 40px;
+  background-size: cover;
+  background-position: center;
+  transition: background-image .2s ease;
+  min-height: 60vh;
 }
 
 /* Passcode panel */
-.passcode-panel{
-  margin-top:20px;background:transparent;padding:0;border-radius:12px;width:360px;max-width:92%;
-  display:flex;flex-direction:column;align-items:center;gap:10px;
+.passcode-panel {
+  margin-top: 20px;
+  background: transparent;
+  padding: 0;
+  border-radius: 12px;
+  width: 360px;
+  max-width: 92%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
-/* Prompt */
-.prompt{color:rgba(255,255,255,0.95);font-size:20px;margin-bottom:6px}
+/* Prompt (hidden in invisible mode) */
+.prompt {
+  color: rgba(255,255,255,0.95);
+  font-size: 20px;
+  margin-bottom: 6px;
+}
 
-/* Dots (visible and iOS-like) */
-.dots{display:flex;gap:12px;justify-content:center;margin-bottom:6px}
-.dot{
-  width:16px;height:16px;border-radius:50%;background:var(--dot-empty);
-  transition:background .12s, transform .08s, box-shadow .12s;
+/* Dots (iOS-like) */
+.dots {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--dot-empty);
+  transition: background .12s, transform .08s, box-shadow .12s;
   box-shadow: 0 0 0 0 rgba(255,255,255,0);
 }
-.dot.filled{background:var(--dot-filled);box-shadow:0 0 12px rgba(255,255,255,0.25);transform:scale(1.08)}
-
-/* Keypad layout — invisible keys by default when invisibleMode checked */
-.keypad{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:22px;
-  width:360px;
-  max-width:92%;
-  padding:18px 6px;
-  justify-items:center;
+.dot.filled {
+  background: var(--dot-filled);
+  box-shadow: 0 0 12px rgba(255,255,255,0.25);
+  transform: scale(1.08);
 }
 
-/* Key area — visible styling for dev or normal non-invisible mode */
-.key{
-  width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,0.05);color:#fff;font-size:34px;font-weight:500;cursor:pointer;
-  user-select:none;transition:background .08s, transform .06s, color .06s;
+/* Keypad grid — layout like iOS */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 84px);
+  gap: 22px;
+  width: 360px;
+  max-width: 92%;
+  padding: 18px 6px;
+  justify-items: center;
+  pointer-events: auto;
 }
-.key .sub{display:block;font-size:11px;opacity:0.85;margin-top:4px}
-.key:active{transform:translateY(1px);background:rgba(255,255,255,0.08)}
+
+/* Key buttons (default visible style) */
+.key {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  font-size: 34px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: background .08s, transform .06s, color .06s;
+  -webkit-tap-highlight-color: transparent;
+  border: none;
+  padding: 0;
+}
+.key .sub { display: block; font-size: 11px; opacity: 0.85; margin-top: 4px; }
+.key:active { transform: translateY(1px); background: rgba(255,255,255,0.08); }
+
+/* Zero key spans bottom row center */
+.key.zero {
+  grid-column: 1 / -1;
+  width: 84px;
+}
 
 /* Action row */
-.action-row{display:flex;gap:8px;justify-content:space-between;width:360px;max-width:92%}
-.action-row button{flex:1;padding:8px;border-radius:8px;border:0;background:#101620;color:#fff;cursor:pointer}
+.action-row {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  width: 360px;
+  max-width: 92%;
+}
+.action-row button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 0;
+  background: #101620;
+  color: #fff;
+  cursor: pointer;
+}
 
 /* Indicator small, bottom center */
-.indicator{
-  position:fixed;left:50%;transform:translateX(-50%);
-  bottom:8px;padding:6px 10px;border-radius:8px;background:var(--indicator-bg);
-  color:var(--indicator-fg);font-size:11px;display:flex;gap:8px;align-items:center;
-  box-shadow:0 6px 18px rgba(0,0,0,0.45);z-index:40;transition:opacity .18s;
+.indicator {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--indicator-bg);
+  color: var(--indicator-fg);
+  font-size: 11px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  z-index: 40;
+  transition: opacity .18s;
 }
-.indicator.hidden{opacity:0;pointer-events:none}
-.indicator .tiny{font-size:10px;opacity:0.95}
+.indicator.hidden { opacity: 0.02; pointer-events: none; }
+.indicator .tiny { font-size: 10px; opacity: 0.95; }
 
-/* invisible overlay toggles */
+/* Invisible mode helpers: hide visuals but keep interactive areas */
 .invisible .prompt,
 .invisible .dots,
 .invisible .time,
 .invisible .date,
 .invisible .action-row {
-  opacity:0; visibility:hidden;
+  opacity: 0;
+  visibility: hidden;
+}
+.invisible .key {
+  background: transparent;
+  color: transparent;
+  box-shadow: none;
+  border: 0;
 }
 
-/* Make keys fully transparent but keep size and interactive area when invisibleMode ON */
-.invisible .key{
-  background:transparent;
-  color:transparent;
-  box-shadow:none;
-  border:0;
-}
+/* Hide passcode UI in home-mode */
+.home-mode .passcode-panel { display: none !important; }
 
-/* Hide passcode UI when in home-mode */
-.home-mode .passcode-panel { display:none !important; }
-
-/* Dev outlines */
-.dev-outlines .key{
+/* Dev outlines (shows guides when aligning) */
+.dev-outlines .key {
   outline: 1px dashed rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.02);
   color: rgba(255,255,255,0.06);
+  font-size: 16px;
+  line-height: 1;
 }
 
-/* Small screens */
-@media (max-width:420px){
-  .key{width:72px;height:72px;font-size:30px}
-  .action-row{width:300px}
-  .keypad{gap:18px}
+/* Small screens adjustments */
+@media (max-width: 420px) {
+  .key { width: 72px; height: 72px; font-size: 30px; }
+  .action-row { width: 300px; }
+  .keypad { gap: 18px; }
 }
