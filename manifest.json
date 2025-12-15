@@ -1,19 +1,19 @@
 {
-  "name": "Magic Lock",
-  "short_name": "Lock",
-  "start_url": "./index.html",
+  "name": "GhostLock",
+  "short_name": "GhostLock",
+  "description": "An invisible overlay for a lockscreen trick.",
+  "start_url": "./index-2.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "orientation": "portrait",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon.png",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
