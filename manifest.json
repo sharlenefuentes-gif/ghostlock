@@ -2,8 +2,7 @@
   "name": "GhostLock",
   "short_name": "GhostLock",
   "description": "An invisible overlay for a lockscreen trick.",
-  /* FIX 1: Change start_url to match your actual main file name */
-  "start_url": "./index.html", 
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
