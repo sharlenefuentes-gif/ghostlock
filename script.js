@@ -1,206 +1,215 @@
-// Completely invisible overlay lockscreen
-// - Double-tap top-left to upload screenshot (no visible button)
-// - Two-finger swipe to set reference number (no visible input)
-// - All keypad areas invisible but fully functional
-// - Difference value ALWAYS shows at bottom for 8 seconds after unlock
-// - Nothing is stored or logged anywhere
+// --- CONFIGURATION ---
+const MAX_DIGITS = 4;
+const DISPLAY_DURATION = 10000; // Result stays for 10 seconds (or until re-lock)
 
-const bgUpload = document.getElementById('bgUpload');
+// --- STATE ---
+let enteredCode = "";
+let referenceNumber = 2024; // Default Reference (Change this via Swipe)
+let isUnlocked = false;
+
+// --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
+const homescreen = document.getElementById('homescreen');
+const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
-const dots = document.getElementById('dots');
-const indicatorContainer = document.getElementById('indicatorContainer');
-const indicatorValue = document.getElementById('indicatorValue');
+const magicResult = document.getElementById('magicResult');
 
-let entered = '';
-let referenceNumber = 1000; // default reference number (set via swipe)
-let subtractDirection = 'entered-minus-ref'; // entered - reference (default)
-const maxDigits = 4;
-let hideTimer = null;
-const DISPLAY_MS = 8000; // 8 seconds
+// Upload Inputs
+const uploadLock = document.getElementById('uploadLock');
+const uploadHome = document.getElementById('uploadHome');
 
-// Build keypad (1.. 9, erase, 0, enter)
-const labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, '⌫', 0, '↵'];
-labels.forEach(l => makeKey(l));
+// --- INITIALIZATION ---
+initKeypad();
+renderDots();
 
-function makeKey(label) {
-  const btn = document.createElement('div');
-  btn.className = 'key';
-  keypad.appendChild(btn);
+// --- KEYPAD GENERATION ---
+function initKeypad() {
+  const keys = [
+    { n: '1', s: '' }, { n: '2', s: 'ABC' }, { n: '3', s: 'DEF' },
+    { n: '4', s: 'GHI' }, { n: '5', s: 'JKL' }, { n: '6', s: 'MNO' },
+    { n: '7', s: 'PQRS' }, { n: '8', s: 'TUV' }, { n: '9', s: 'WXYZ' },
+    { n: '', s: '' }, { n: '0', s: '' }, { n: '⌫', s: '' } // Left blank, 0, Delete
+  ];
 
-  btn.addEventListener('click', () => {
-    if (label === '⌫') {
-      removeDigit();
-    } else if (label === '↵') {
-      attemptUnlock();
+  keys.forEach(k => {
+    const btn = document.createElement('div');
+    if (k.n === '') {
+      // Empty bottom left slot
+      btn.className = 'key empty';
+    } else if (k.n === '⌫') {
+      // Backspace logic (visual only if you want, usually hidden text "Cancel" on iOS)
+      btn.className = 'key empty'; // Making visually empty but clickable for "Cancel" or hidden backspace
+      btn.innerHTML = `<span class="key-sub" style="font-size:16px; font-weight:400">Cancel</span>`;
+      btn.style.pointerEvents = 'auto';
+      btn.addEventListener('click', () => {
+        enteredCode = ""; 
+        renderDots();
+      });
     } else {
-      addDigit(String(label));
+      // Number Keys
+      btn.className = 'key';
+      btn.innerHTML = `<span class="key-digit">${k.n}</span>` + 
+                      (k.s ? `<span class="key-sub">${k.s}</span>` : '');
+      
+      btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(k.n); });
+      btn.addEventListener('click', () => handleInput(k.n));
     }
+    keypad.appendChild(btn);
   });
+}
+
+// --- CORE LOGIC ---
+function handleInput(digit) {
+  if (isUnlocked) return;
+  if (enteredCode.length < MAX_DIGITS) {
+    enteredCode += digit;
+    renderDots();
+    
+    // Check if full
+    if (enteredCode.length === MAX_DIGITS) {
+      performUnlock();
+    }
+  }
 }
 
 function renderDots() {
-  dots.innerHTML = '';
-  for (let i = 0; i < maxDigits; i++) {
-    const d = document.createElement('div');
-    d.className = 'dot' + (i < entered. length ? ' filled' : '');
-    dots.appendChild(d);
+  dotsContainer.innerHTML = '';
+  for (let i = 0; i < MAX_DIGITS; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i < enteredCode.length ? ' filled' : '');
+    dotsContainer.appendChild(dot);
   }
 }
 
-function addDigit(d) {
-  if (entered.length >= maxDigits) return;
-  entered += d;
+function performUnlock() {
+  // 1. Calculate Magic Number
+  // Logic: Reference (My Input) - Entered (User Input)
+  const userNum = parseInt(enteredCode, 10);
+  const result = referenceNumber - userNum;
+
+  // 2. Set Result Text
+  magicResult.textContent = result;
+
+  // 3. Unlock Animation
+  isUnlocked = true;
+  lockscreen.classList.add('unlocked');
+
+  // 4. Reset Logic (Optional: Clear code immediately for next time)
+  setTimeout(() => {
+    enteredCode = "";
+    renderDots();
+  }, 500);
+}
+
+function reLock() {
+  isUnlocked = false;
+  lockscreen.classList.remove('unlocked');
+  magicResult.textContent = "";
+  enteredCode = "";
   renderDots();
 }
 
-function removeDigit() {
-  entered = entered.slice(0, -1);
-  renderDots();
-}
+// --- INVISIBLE CONTROLS & SETTINGS ---
 
-function attemptUnlock() {
-  if (entered.length !== maxDigits) return;
-  const enteredNum = parseInt(entered, 10);
-  const diff = subtractDirection === 'entered-minus-ref' 
-    ? (enteredNum - referenceNumber) 
-    : (referenceNumber - enteredNum);
+// 1. Double Tap Top-Left: Upload LOCKSCREEN Image
+createTouchZone(0, 0, 100, 100, () => uploadLock.click());
 
-  // ALWAYS show the difference for 8 seconds
-  showDifferenceTemporarily(diff, DISPLAY_MS);
+// 2. Double Tap Top-Right: Upload HOMESCREEN Image
+createTouchZone(window.innerWidth - 100, 0, 100, 100, () => uploadHome.click());
 
-  // subtle feedback
-  flashUnlock();
-
-  // clear for next attempt
-  entered = '';
-  renderDots();
-}
-
-function showDifferenceTemporarily(diff, ms) {
-  if (hideTimer) {
-    clearTimeout(hideTimer);
-    hideTimer = null;
+// 3. Triple Tap Bottom-Center (on Homescreen): Re-Lock
+// We attach this to document but check if unlocked
+let bottomTapCount = 0;
+let bottomTapTimer = null;
+document.addEventListener('click', (e) => {
+  if (!isUnlocked) return;
+  if (e.clientY > window.innerHeight - 100) {
+    bottomTapCount++;
+    if (bottomTapTimer) clearTimeout(bottomTapTimer);
+    bottomTapTimer = setTimeout(() => { bottomTapCount = 0; }, 400);
+    if (bottomTapCount === 3) reLock();
   }
-  indicatorValue.textContent = String(diff);
-  indicatorContainer.classList.remove('hidden');
-
-  hideTimer = setTimeout(() => {
-    indicatorValue.textContent = '—';
-    indicatorContainer. classList.add('hidden');
-    hideTimer = null;
-  }, ms);
-}
-
-function flashUnlock() {
-  lockscreen.animate(
-    [
-      { transform:  'scale(1)' },
-      { transform: 'scale(1.006)' },
-      { transform: 'scale(1)' }
-    ],
-    { duration: 180, easing: 'ease-out' }
-  );
-}
-
-// --- Double-tap top-left to upload screenshot ---
-(function() {
-  let lastTap = 0;
-  const DOUBLE_TAP_MS = 300;
-  const TOP_LEFT_MAX_X = 120;
-  const TOP_LEFT_MAX_Y = 120;
-
-  function isInTopLeft(x, y) {
-    return x <= TOP_LEFT_MAX_X && y <= TOP_LEFT_MAX_Y;
-  }
-
-  // Touch-based double-tap
-  window. addEventListener('touchend', (ev) => {
-    if (! ev.changedTouches || ev.changedTouches. length !== 1) return;
-    const t = ev.changedTouches[0];
-    if (! isInTopLeft(t.clientX, t.clientY)) return;
-    const now = Date. now();
-    if (now - lastTap <= DOUBLE_TAP_MS) {
-      bgUpload.click();
-      lastTap = 0;
-    } else {
-      lastTap = now;
-    }
-  }, { passive: true });
-
-  // Mouse double-click fallback for desktop testing
-  window.addEventListener('dblclick', (ev) => {
-    if (isInTopLeft(ev.clientX, ev. clientY)) bgUpload.click();
-  });
-})();
-
-// --- Two-finger swipe to set reference number ---
-(function() {
-  let twoTouchStart = null;
-  const MIN_SWIPE_DISTANCE = 40;
-
-  window.addEventListener('touchstart', (ev) => {
-    if (ev.touches && ev.touches.length === 2) {
-      twoTouchStart = [
-        { x: ev.touches[0]. clientX, y: ev.touches[0].clientY },
-        { x: ev.touches[1].clientX, y: ev. touches[1].clientY }
-      ];
-    }
-  }, { passive: true });
-
-  window.addEventListener('touchend', (ev) => {
-    if (!twoTouchStart) return;
-
-    const changed = ev.changedTouches;
-    if (! changed || changed.length === 0) {
-      twoTouchStart = null;
-      return;
-    }
-
-    const startAvgY = (twoTouchStart[0].y + twoTouchStart[1].y) / 2;
-    let endAvgY;
-
-    if (changed. length >= 2) {
-      endAvgY = (changed[0].clientY + changed[1].clientY) / 2;
-    } else if (changed. length === 1) {
-      endAvgY = (changed[0].clientY + startAvgY * 2 - twoTouchStart[0].y) / 2;
-    } else {
-      twoTouchStart = null;
-      return;
-    }
-
-    const deltaY = startAvgY - endAvgY;
-
-    if (Math. abs(deltaY) >= MIN_SWIPE_DISTANCE) {
-      // Two-finger swipe detected — prompt for reference number
-      const current = String(referenceNumber);
-      const input = prompt('Enter reference number:', current);
-      if (input !== null) {
-        const num = parseFloat(input);
-        if (!isNaN(num)) {
-          referenceNumber = num;
-        }
-      }
-    }
-
-    twoTouchStart = null;
-  }, { passive: true });
-})();
-
-// --- Background upload handler ---
-bgUpload.addEventListener('change', (ev) => {
-  const f = ev.target. files && ev.target.files[0];
-  if (! f) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    lockscreen.style.backgroundImage = `url('${reader.result}')`;
-    lockscreen.style.backgroundSize = 'cover';
-    lockscreen.style.backgroundPosition = 'center';
-  };
-  reader.readAsDataURL(f);
 });
 
-// --- Init ---
-renderDots();
-indicatorContainer.classList.add('hidden');
-indicatorValue.textContent = '—';
+// 4. Two-Finger Swipe Down: Set Reference Number
+let touchStartY = 0;
+document.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 2) {
+    touchStartY = e.touches[0].clientY;
+  }
+});
+
+document.addEventListener('touchend', (e) => {
+  if (e.changedTouches.length === 1 || e.changedTouches.length === 2) {
+     // Simple check if it was a 2 finger gesture ending
+     // A robust app might need more complex gesture tracking, 
+     // but this usually works for personal tools.
+  }
+});
+
+// Simpler Gesture: Long Press on the "0" key (hidden feature)
+// Or use the provided 2-finger swipe logic:
+let twoFingerStart = null;
+window.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 2) {
+    twoFingerStart = e.touches[0].clientY;
+  }
+});
+window.addEventListener('touchend', (e) => {
+  if (twoFingerStart !== null && e.changedTouches.length > 0) {
+    const endY = e.changedTouches[0].clientY;
+    if (Math.abs(endY - twoFingerStart) > 50) {
+      // Trigger Input
+      const newRef = prompt("Set Reference Number:", referenceNumber);
+      if (newRef) referenceNumber = parseInt(newRef, 10);
+    }
+    twoFingerStart = null;
+  }
+});
+
+
+// --- FILE HANDLERS ---
+uploadLock.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      lockscreen.style.backgroundImage = `url('${evt.target.result}')`;
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+uploadHome.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      homescreen.style.backgroundImage = `url('${evt.target.result}')`;
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// Helper for Invisible Buttons
+function createTouchZone(x, y, w, h, callback) {
+  let lastTap = 0;
+  window.addEventListener('touchend', (e) => {
+    const touch = e.changedTouches[0];
+    if (touch.clientX >= x && touch.clientX <= x + w &&
+        touch.clientY >= y && touch.clientY <= y + h) {
+      const now = Date.now();
+      if (now - lastTap < 300) {
+        callback();
+      }
+      lastTap = now;
+    }
+  });
+  // Mouse support for desktop testing
+  window.addEventListener('dblclick', (e) => {
+    if (e.clientX >= x && e.clientX <= x + w &&
+        e.clientY >= y && e.clientY <= y + h) {
+      callback();
+    }
+  });
+}
