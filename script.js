@@ -1,9 +1,8 @@
 // Completely invisible overlay lockscreen
 // - Double-tap top-left to upload screenshot (no visible button)
-// - Two-finger swipe to set reference number (no visible input)
+// - Triple-tap EMERGENCY button to set reference number (NEW CONTROL)
 // - All keypad areas invisible but fully functional
 // - Difference value ALWAYS shows at bottom for 8 seconds after unlock
-// - Permanent access key removed for stability.
 
 const bgUpload = document.getElementById('bgUpload');
 const lockscreen = document.getElementById('lockscreen');
@@ -11,9 +10,11 @@ const keypad = document.getElementById('keypad');
 const dots = document.getElementById('dots');
 const indicatorContainer = document.getElementById('indicatorContainer');
 const indicatorValue = document.getElementById('indicatorValue');
+// NEW: Get the Emergency Button
+const emergencyBtn = document.getElementById('emergencyBtn'); 
 
 let entered = '';
-let referenceNumber = 1000; // default reference number (set via swipe)
+let referenceNumber = 1000; // default reference number (set via Emergency Triple-Tap)
 let subtractDirection = 'entered-minus-ref'; // entered - reference (default)
 const maxDigits = 4;
 let hideTimer = null;
@@ -152,60 +153,42 @@ function loadSettings() {
   });
 })();
 
-// --- Two-finger swipe to set reference number ---
+// --- NEW CONTROL: Triple-tap Emergency Button to Set Reference Number ---
 (function() {
-  let twoTouchStart = null;
-  const MIN_SWIPE_DISTANCE = 40;
+  let tapCount = 0;
+  let tapTimer = null;
+  const TRIPLE_TAP_MS = 500; // Allow 500ms between taps
 
-  window.addEventListener('touchstart', (ev) => {
-    if (ev.touches && ev.touches.length === 2) {
-      twoTouchStart = [
-        { x: ev.touches[0].clientX, y: ev.touches[0].clientY },
-        { x: ev.touches[1].clientX, y: ev.touches[1].clientY }
-      ];
-    }
-  }, { passive: true });
+  if (emergencyBtn) {
+    emergencyBtn.addEventListener('click', (ev) => {
+      ev.preventDefault(); // Stop default link behavior
+      tapCount++;
 
-  window.addEventListener('touchend', (ev) => {
-    if (!twoTouchStart) return;
+      if (tapTimer) clearTimeout(tapTimer);
+      
+      tapTimer = setTimeout(() => {
+        tapCount = 0;
+      }, TRIPLE_TAP_MS);
 
-    const changed = ev.changedTouches;
-    if (! changed || changed.length === 0) {
-      twoTouchStart = null;
-      return;
-    }
-
-    const startAvgY = (twoTouchStart[0].y + twoTouchStart[1].y) / 2;
-    let endAvgY;
-
-    if (changed.length >= 2) {
-      endAvgY = (changed[0].clientY + changed[1].clientY) / 2;
-    } else if (changed.length === 1) {
-      // Logic to estimate the second touch end point for single-finger swipe end
-      endAvgY = (changed[0].clientY + startAvgY * 2 - twoTouchStart[0].y) / 2;
-    } else {
-      twoTouchStart = null;
-      return;
-    }
-
-    const deltaY = startAvgY - endAvgY;
-
-    if (Math.abs(deltaY) >= MIN_SWIPE_DISTANCE) {
-      // Two-finger swipe detected — prompt for reference number
-      const current = String(referenceNumber);
-      const input = prompt('Enter reference number:', current);
-      if (input !== null) {
-        const num = parseFloat(input);
-        if (!isNaN(num)) {
-          referenceNumber = num;
-          localStorage.setItem('referenceNumber', String(referenceNumber)); // Save new reference number
+      if (tapCount === 3) {
+        tapCount = 0;
+        clearTimeout(tapTimer);
+        
+        // Action: Prompt to set the reference number
+        const current = String(referenceNumber);
+        const input = prompt('Enter NEW reference number:', current);
+        if (input !== null) {
+          const num = parseFloat(input);
+          if (!isNaN(num)) {
+            referenceNumber = num;
+            localStorage.setItem('referenceNumber', String(referenceNumber)); // Save new reference number
+          }
         }
       }
-    }
-
-    twoTouchStart = null;
-  }, { passive: true });
+    });
+  }
 })();
+// --- END NEW CONTROL ---
 
 // --- Background upload handler ---
 bgUpload.addEventListener('change', (ev) => {
