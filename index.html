@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1" />
+  
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Magic Lock">
+
+  <link rel="manifest" href="manifest.json">
+  
   <title>Magic Lockscreen</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -18,23 +24,45 @@
       
       <div class="status-bar-spacer"></div>
 
-      <div class="time-container">
+      <div class="content-wrapper">
+        <div class="passcode-panel" id="panel">
+          <div class="prompt">Enter Passcode</div>
+          <div class="dots" id="dots"></div>
+          <div class="keypad" id="keypad"></div>
+          <div class="cancel-btn" id="cancelBtn">Cancel</div>
         </div>
-
-      <div class="passcode-panel" id="panel">
-        <div class="prompt">Enter Passcode</div>
-        <div class="dots" id="dots"></div>
-        <div class="keypad" id="keypad"></div>
       </div>
 
       <div class="lock-footer">
-        <div class="icon-circle stub"></div> <div class="icon-circle stub"></div> </div>
+        <div class="icon-circle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C10.3431 2 9 3.34315 9 5V11L7 13.5V19C7 20.6569 8.34315 22 10 22H14C15.6569 22 17 20.6569 17 19V13.5L15 11V5C15 3.34315 13.6569 2 12 2Z" fill="white"/>
+            <path d="M12 4C12.5523 4 13 4.44772 13 5V8C13 8.55228 12.5523 9 12 9C11.4477 9 11 8.55228 11 8V5C11 4.44772 11.4477 4 12 4Z" fill="black" fill-opacity="0.2"/>
+          </svg>
+        </div>
+
+        <div class="icon-circle">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 7C9.23858 7 7 9.23858 7 12C7 14.7614 9.23858 17 12 17C14.7614 17 17 14.7614 17 12C17 9.23858 14.7614 7 12 7ZM8.5 12C8.5 10.067 10.067 8.5 12 8.5C13.933 8.5 15.5 10.067 15.5 12C15.5 13.933 13.933 15.5 12 15.5C10.067 15.5 8.5 13.933 8.5 12Z" fill="white"/>
+            <path d="M4 8C4 6.89543 4.89543 6 6 6H7.17157C7.70201 6 8.21071 5.78929 8.58579 5.41421L9.41421 4.58579C9.78929 4.21071 10.298 4 10.8284 4H13.1716C13.702 4 14.2107 4.21071 14.5858 4.58579L15.4142 5.41421C15.7893 5.78929 16.298 6 16.8284 6H18C19.1046 6 20 6.89543 20 8V16C20 17.1046 19.1046 18 18 18H6C4.89543 18 4 17.1046 4 16V8Z" stroke="white" stroke-width="2"/>
+            <circle cx="17" cy="8" r="1" fill="white"/>
+          </svg>
+        </div>
+      </div>
     </main>
 
     <input id="uploadLock" type="file" accept="image/*" style="display: none" />
     <input id="uploadHome" type="file" accept="image/*" style="display: none" />
 
   </div>
+  
   <script src="script.js"></script>
+  
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('Service Worker Registered (Offline Ready)'));
+    }
+  </script>
 </body>
 </html>
