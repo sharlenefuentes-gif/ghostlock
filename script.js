@@ -3,7 +3,7 @@
 // - Two-finger swipe to set reference number (no visible input)
 // - All keypad areas invisible but fully functional
 // - Difference value ALWAYS shows at bottom for 8 seconds after unlock
-// - Nothing is stored or logged anywhere
+// - Permanent access key removed for stability.
 
 const bgUpload = document.getElementById('bgUpload');
 const lockscreen = document.getElementById('lockscreen');
@@ -119,9 +119,6 @@ function loadSettings() {
     if (savedRef) {
         referenceNumber = parseFloat(savedRef);
     }
-    
-    // Note: Master Key (Zaq12wsx) feature logic would be implemented here 
-    // to check for permanent unlock conditions, but is excluded for this fix.
 }
 
 // --- Double-tap top-left to upload screenshot ---
@@ -219,14 +216,14 @@ bgUpload.addEventListener('change', (ev) => {
     lockscreen.style.backgroundImage = `url('${reader.result}')`;
     lockscreen.style.backgroundSize = 'cover';
     lockscreen.style.backgroundPosition = 'center';
-    // FIX: Save background to local storage for persistence
+    // Save background to local storage for persistence
     localStorage.setItem('lockscreenBg', reader.result);
   };
   reader.readAsDataURL(f);
 });
 
 // --- Init ---
-loadSettings(); // FIX: Load settings at startup
+loadSettings(); 
 renderDots();
 indicatorContainer.classList.add('hidden');
 indicatorValue.textContent = '—';
