@@ -1,6 +1,6 @@
 // Completely invisible overlay lockscreen
 // - Double-tap top-left to upload screenshot (no visible button)
-// - Triple-tap EMERGENCY button to set reference number (NEW CONTROL)
+// - Triple-tap EMERGENCY button to set reference number
 // - All keypad areas invisible but fully functional
 // - Difference value ALWAYS shows at bottom for 8 seconds after unlock
 
@@ -10,15 +10,14 @@ const keypad = document.getElementById('keypad');
 const dots = document.getElementById('dots');
 const indicatorContainer = document.getElementById('indicatorContainer');
 const indicatorValue = document.getElementById('indicatorValue');
-// NEW: Get the Emergency Button
 const emergencyBtn = document.getElementById('emergencyBtn'); 
 
 let entered = '';
-let referenceNumber = 1000; // default reference number (set via Emergency Triple-Tap)
-let subtractDirection = 'entered-minus-ref'; // entered - reference (default)
+let referenceNumber = 1000; 
+let subtractDirection = 'entered-minus-ref'; 
 const maxDigits = 4;
 let hideTimer = null;
-const DISPLAY_MS = 8000; // 8 seconds
+const DISPLAY_MS = 8000; 
 
 // Build keypad (1.. 9, erase, 0, enter)
 const labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, '⌫', 0, '↵'];
@@ -67,13 +66,8 @@ function attemptUnlock() {
     ? (enteredNum - referenceNumber) 
     : (referenceNumber - enteredNum);
 
-  // ALWAYS show the difference for 8 seconds
   showDifferenceTemporarily(diff, DISPLAY_MS);
-
-  // subtle feedback
   flashUnlock();
-
-  // clear for next attempt
   entered = '';
   renderDots();
 }
@@ -107,7 +101,6 @@ function flashUnlock() {
 // --- CONFIGURATION & PERSISTENCE ---
 
 function loadSettings() {
-    // Load background image from local storage
     const savedBg = localStorage.getItem('lockscreenBg');
     if (savedBg) {
         lockscreen.style.backgroundImage = `url('${savedBg}')`;
@@ -115,7 +108,6 @@ function loadSettings() {
         lockscreen.style.backgroundPosition = 'center';
     }
 
-    // Load reference number from local storage
     const savedRef = localStorage.getItem('referenceNumber');
     if (savedRef) {
         referenceNumber = parseFloat(savedRef);
@@ -133,11 +125,11 @@ function loadSettings() {
     return x <= TOP_LEFT_MAX_X && y <= TOP_LEFT_MAX_Y;
   }
 
-  // Touch-based double-tap
   window.addEventListener('touchend', (ev) => {
     if (! ev.changedTouches || ev.changedTouches.length !== 1) return;
     const t = ev.changedTouches[0];
-    if (! isInTopLeft(t.clientX, t.clientY)) return;
+    // Use window.innerWidth/Height if clientX/Y isn't enough, but this zone should work.
+    if (! isInTopLeft(t.clientX, t.clientY)) return; 
     const now = Date.now();
     if (now - lastTap <= DOUBLE_TAP_MS) {
       bgUpload.click();
@@ -145,23 +137,28 @@ function loadSettings() {
     } else {
       lastTap = now;
     }
-  }, { passive: true });
+  }, { passive: true }); // Using passive: true to not block scroll/zoom on whole screen
 
-  // Mouse double-click fallback for desktop testing
   window.addEventListener('dblclick', (ev) => {
     if (isInTopLeft(ev.clientX, ev.clientY)) bgUpload.click();
   });
 })();
 
-// --- NEW CONTROL: Triple-tap Emergency Button to Set Reference Number ---
+
+// --- Triple-tap Emergency Button to Set Reference Number ---
 (function() {
   let tapCount = 0;
   let tapTimer = null;
-  const TRIPLE_TAP_MS = 500; // Allow 500ms between taps
+  const TRIPLE_TAP_MS = 500; 
 
   if (emergencyBtn) {
-    emergencyBtn.addEventListener('click', (ev) => {
-      ev.preventDefault(); // Stop default link behavior
+    // IMPORTANT: Use both 'click' (for desktop/accessibility) and 'touchend' (for mobile)
+    const handleTap = (ev) => {
+      ev.preventDefault(); // This is essential to prevent link navigation and stop browser defaults
+      
+      // Ensure we only count taps on the button itself
+      if (ev.target.id !== 'emergencyBtn') return;
+
       tapCount++;
 
       if (tapTimer) clearTimeout(tapTimer);
@@ -181,14 +178,17 @@ function loadSettings() {
           const num = parseFloat(input);
           if (!isNaN(num)) {
             referenceNumber = num;
-            localStorage.setItem('referenceNumber', String(referenceNumber)); // Save new reference number
+            localStorage.setItem('referenceNumber', String(referenceNumber));
           }
         }
       }
-    });
+    };
+
+    emergencyBtn.addEventListener('click', handleTap);
+    emergencyBtn.addEventListener('touchend', handleTap);
   }
 })();
-// --- END NEW CONTROL ---
+
 
 // --- Background upload handler ---
 bgUpload.addEventListener('change', (ev) => {
@@ -199,7 +199,6 @@ bgUpload.addEventListener('change', (ev) => {
     lockscreen.style.backgroundImage = `url('${reader.result}')`;
     lockscreen.style.backgroundSize = 'cover';
     lockscreen.style.backgroundPosition = 'center';
-    // Save background to local storage for persistence
     localStorage.setItem('lockscreenBg', reader.result);
   };
   reader.readAsDataURL(f);
@@ -207,6 +206,7 @@ bgUpload.addEventListener('change', (ev) => {
 
 // --- Init ---
 loadSettings(); 
-renderDots();
+// IMPORTANT: Need to call renderDots() to show the keypad structure on load
+renderDots(); 
 indicatorContainer.classList.add('hidden');
 indicatorValue.textContent = '—';
