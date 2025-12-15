@@ -24,7 +24,7 @@ loadSettings(); // MUST load settings before initKeypad/renderDots
 initKeypad();
 renderDots();
 
-// --- KEYPAD GENERATION (UNCHANGED) ---
+// --- KEYPAD GENERATION ---
 function initKeypad() {
   const keys = [
     { n: '1', s: '' }, { n: '2', s: 'ABC' }, { n: '3', s: 'DEF' },
@@ -57,7 +57,7 @@ cancelBtn.addEventListener('click', () => {
   renderDots();
 });
 
-// --- CORE LOGIC (UPDATED) ---
+// --- CORE LOGIC ---
 function handleInput(digit) {
   if (isUnlocked) return;
   // Uses maxDigits variable
@@ -137,7 +137,7 @@ function setMaxDigits() {
   }
 }
 
-// --- STORAGE & SETTINGS (UPDATED) ---
+// --- STORAGE & SETTINGS ---
 
 function saveSettings() {
   localStorage.setItem('magicRefNum', referenceNumber);
@@ -171,28 +171,38 @@ function loadSettings() {
 }
 
 
-// --- INVISIBLE CONTROLS (UPDATED HELPER AND NEW ZONE) ---
+// --- INVISIBLE CONTROLS (UPDATED FOR ROBUST TAPPING) ---
 
-// Helper updated to handle required taps (2 for upload, 3 for settings)
+// Helper updated for robust tapping (longer timeout)
 function createTouchZone(x, y, w, h, callback, requiredTaps = 2) {
   let tapCount = 0;
   let tapTimer = null;
+  
   window.addEventListener('touchend', (e) => {
+    // Only process single touch events in this zone handler
+    if (e.touches.length > 0) return;
+    
     const touch = e.changedTouches[0];
+    
+    // Check if the tap originated in the defined zone
     if (touch.clientX >= x && touch.clientX <= x + w &&
         touch.clientY >= y && touch.clientY <= y + h) {
       
       tapCount++;
       if (tapTimer) clearTimeout(tapTimer);
-      tapTimer = setTimeout(() => { tapCount = 0; }, 350); // Reset after 350ms
+      
+      // Increased tap window to 500ms for better usability
+      tapTimer = setTimeout(() => { tapCount = 0; }, 500); 
       
       if (tapCount === requiredTaps) {
+        // Prevent default tap behavior (like synthetic click)
+        e.preventDefault(); 
         callback();
-        tapCount = 0; // Reset immediately after successful execution
+        tapCount = 0; 
         clearTimeout(tapTimer);
       }
     }
-  });
+  }, {passive: false}); 
 }
 
 
@@ -202,7 +212,7 @@ createTouchZone(0, 0, 100, 100, () => uploadLock.click(), 2);
 // 2. Double Tap Top-Right: Upload HOME BG
 createTouchZone(window.innerWidth - 100, 0, 100, 100, () => uploadHome.click(), 2);
 
-// 3. Triple Tap Top-Center: Set Max Digits (New Control)
+// 3. Triple Tap Top-Center: Set Max Digits
 // Width 200px, 100px down from the top.
 createTouchZone(window.innerWidth / 2 - 100, 0, 200, 100, setMaxDigits, 3);
 
