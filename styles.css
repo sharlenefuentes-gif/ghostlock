@@ -197,35 +197,3 @@ html, body {
   transform: scale(0.95);
   background: rgba(255,255,255,0.2);
 }
-
-/* --- New Styles for Text Buttons (Emergency/Cancel) --- */
-/* Target the buttons inside the lock-footer that use the icon-circle class */
-.lock-footer button.icon-circle {
-    /* Reset Button Defaults */
-    border: none;
-    cursor: pointer;
-    
-    /* Ensure background is kept from the original .icon-circle rule */
-    background: var(--icon-bg); 
-    
-    /* Text Styling */
-    font-size: 10px; 
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    line-height: 1.1;
-    text-transform: uppercase;
-    color: var(--text-color); 
-    text-align: center;
-    padding: 2px; /* Helps center multi-line text */
-}
-
-/* Optional: To make "Cancel/delete" fit better on a 50x50 button, 
-   you may want to increase the size of the buttons slightly. 
-   If you want larger buttons, change the original .icon-circle properties: 
-
-.icon-circle {
-    width: 60px;
-    height: 60px;
-    ... (rest of the properties)
-}
-*/
