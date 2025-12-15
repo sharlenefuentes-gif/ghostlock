@@ -279,12 +279,3 @@ uploadHome.addEventListener('change', (e) => {
     reader.readAsDataURL(file);
   }
 });
-
-// Find the old way of selecting the first icon (Flashlight) and change it to:
-document.getElementById('emergency-btn').addEventListener('click', activateEmergency);
-
-// Find the old way of selecting the second icon (Camera) and change it to:
-document.getElementById('cancel-btn').addEventListener('click', handleCancelDelete);
-
-// You must also rename or rewrite the functions (e.g., 'activateEmergency'
-// and 'handleCancelDelete') to contain your new desired logic.
