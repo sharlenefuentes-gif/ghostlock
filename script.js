@@ -37,7 +37,6 @@ function initKeypad() {
     if (k.n === '') {
       btn.className = 'key empty';
     } else if (k.n === '⌫') {
-      // Empty key is used as a spacer, cancel logic is handled by the text button
       btn.className = 'key empty'; 
     } else {
       btn.className = 'key';
@@ -124,7 +123,6 @@ function saveImage(key, dataUrl) {
   try {
     localStorage.setItem(key, dataUrl);
   } catch (e) {
-    // Handle error if image is too large for local storage
     alert("Image too large to save! Try a screenshot or smaller image.");
   }
 }
