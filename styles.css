@@ -12,7 +12,7 @@
 /* Stable touch handling and layout reset */
 * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
 
-/* PWA/iOS Layout Fixes Retained */
+/* PWA/iOS Layout Fixes Retained for stability */
 html, body {
   height: 100%;
   width: 100%;
@@ -86,7 +86,7 @@ html, body {
   justify-content: center;
 }
 
-/* FIX: Keypad Buttons with digit/sub-text styling */
+/* Keypad Buttons with digit/sub-text styling */
 .key {
   width: 80px;
   height: 80px;
@@ -95,7 +95,7 @@ html, body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   display: flex;
-  flex-direction: column; /* Stack digit and sub-text */
+  flex-direction: column; 
   align-items: center;
   justify-content: center;
   color: #fff; 
@@ -106,7 +106,6 @@ html, body {
 .key:active {
   background: rgba(255,255,255,0.15);
 }
-/* Keypad Content Styles */
 .key-digit {
     font-size: 32px;
     font-weight: 400;
@@ -120,8 +119,8 @@ html, body {
     margin-top: 2px;
 }
 /* Style adjustments for the Enter/Delete keys */
-.key:nth-child(10) .key-digit, /* Erase digit */
-.key:nth-child(12) .key-digit { /* Enter digit */
+.key:nth-child(10) .key-digit, 
+.key:nth-child(12) .key-digit { 
     font-size: 18px;
     font-weight: 500;
     opacity: 0.8; 
