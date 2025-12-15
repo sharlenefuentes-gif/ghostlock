@@ -9,10 +9,10 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-/* FIX: Simple touch handling to avoid blocking input */
+/* Stable touch handling and layout reset */
 * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
 
-/* --- PWA/iOS Layout Fixes Retained --- */
+/* PWA/iOS Layout Fixes Retained */
 html, body {
   height: 100%;
   width: 100%;
@@ -86,7 +86,7 @@ html, body {
   justify-content: center;
 }
 
-/* FIX: Keypad Buttons (Reverted to simple style) */
+/* FIX: Keypad Buttons with digit/sub-text styling */
 .key {
   width: 80px;
   height: 80px;
@@ -95,23 +95,36 @@ html, body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   display: flex;
+  flex-direction: column; /* Stack digit and sub-text */
   align-items: center;
   justify-content: center;
-  font-size: 32px; /* Set the main size here */
-  font-weight: 400;
+  color: #fff; 
   cursor: pointer;
-  color: #fff;
   transition: background 0.1s;
   user-select: none;
 }
 .key:active {
   background: rgba(255,255,255,0.15);
 }
-/* Style adjustments for the Enter/Delete/Erase keys content */
-.key:nth-child(10), .key:nth-child(12) {
-  font-size: 18px; /* Smaller text for Delete/Enter */
-  font-weight: 500;
-  opacity: 0.8; 
+/* Keypad Content Styles */
+.key-digit {
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.1;
+}
+.key-sub {
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.8;
+    line-height: 1;
+    margin-top: 2px;
+}
+/* Style adjustments for the Enter/Delete keys */
+.key:nth-child(10) .key-digit, /* Erase digit */
+.key:nth-child(12) .key-digit { /* Enter digit */
+    font-size: 18px;
+    font-weight: 500;
+    opacity: 0.8; 
 }
 
 
@@ -145,7 +158,7 @@ html, body {
 }
 
 
-/* Indicator and Invisible mode (Simplified and stable) */
+/* Indicator and Invisible mode */
 .indicator {
   position: fixed;
   left: 50%;
