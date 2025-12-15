@@ -12,7 +12,7 @@
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  /* FIX 1: Use 100% and modern d/vh units for correct height in standalone PWA */
+  /* ... (PWA height fixes are maintained) ... */
   height: 100%;
   width: 100%;
   min-height: 100vh;
@@ -26,11 +26,9 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* App shell */
 .app { 
   display: flex; 
   flex-direction: column; 
-  /* FIX 2: Force app to use the full safe area */
   height: 100%;
   height: 100dvh; 
   position: relative;
@@ -40,7 +38,6 @@ html, body {
 .lockscreen {
   flex: 1;
   position: relative;
-  /* Ensure background covers the whole area */
   background-color: var(--bg-color); 
   background-size: cover;
   background-position: center;
@@ -48,22 +45,30 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-around;
+  justify-content: flex-end; /* FIX 2: Push content to the bottom */
   
-  /* FIX 3: Apply safe area padding for notch/home indicator */
   padding-top: env(safe-area-inset-top, 60px);
   padding-bottom: env(safe-area-inset-bottom, 30px);
 }
 
-/* Passcode panel should take up most available space, pushing controls down */
+/* FIX 3: Style the prompt text */
+.prompt { 
+    font-size: 18px; 
+    font-weight: 400; 
+    opacity: 0.8; 
+    margin-bottom: 24px; /* Space above the dots */
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6); 
+}
+
+/* Passcode panel positioning */
 .passcode-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Use flex-grow to take up vertical space */
   flex-grow: 1; 
-  justify-content: flex-end; /* Push content to the bottom of the panel */
+  justify-content: flex-end; /* Push content to bottom of available space */
   width: 100%;
+  margin-bottom: 40px; /* Space above the footer/actions */
 }
 
 /* Dots and Keypad placement */
@@ -91,6 +96,7 @@ html, body {
   justify-content: center;
 }
 
+/* FIX 4: Ensure Keys are opaque when active */
 .key {
   width: 80px;
   height: 80px;
@@ -109,22 +115,27 @@ html, body {
   user-select: none;
 }
 .key:active {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.15); /* Slightly stronger press effect */
 }
+/* This is likely why the digits were missing (the content was transparent) */
 .key:nth-child(10), .key:nth-child(12) {
   font-size: 18px;
   font-weight: 500;
-  opacity: 0.8;
+  opacity: 0.8; /* Ensure the text/icon is visible */
 }
+
 
 /* Footer Action Row (Emergency/Cancel) */
 .lock-footer { 
     width: 86%; 
     display: flex; 
     justify-content: space-between; 
-    /* Padding to lift it slightly above the home bar */
+    align-items: center; /* FIX 5: Remove any potential dividing lines/border by cleaning up box */
     padding-bottom: 10px; 
-    margin-top: 30px; /* Space between keypad and footer */
+    margin-top: 20px; 
+    /* Remove any implicit borders or backgrounds */
+    border: none;
+    box-shadow: none;
 }
 .footer-link {
     font-size: 18px; 
@@ -136,6 +147,8 @@ html, body {
     text-shadow: 0 1px 4px rgba(0,0,0,0.8); 
     transition: opacity 0.1s;
     user-select: none;
+    /* Ensure no implicit box is drawn */
+    border: none; 
 }
 .footer-link:active {
     opacity: 0.7;
@@ -147,7 +160,7 @@ html, body {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(10px + env(safe-area-inset-bottom, 0px)); /* Respect safe area for indicator */
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px)); 
   padding: 6px 10px;
   border-radius: 8px;
   background: var(--indicator-bg);
@@ -164,16 +177,14 @@ html, body {
 .indicator .tiny { font-size: 10px; opacity: 0.95; }
 
 /* Invisible mode helpers: hide visuals but keep interactive areas */
+.invisible .prompt, /* FIX 6: Hide prompt in invisible mode */
 .invisible .dots,
 .invisible .key {
-  /* Hide dot and keypad elements in invisible mode */
   opacity: 0;
+  visibility: hidden;
 }
 .invisible .key:active {
-  /* Still needs a visual press */
   background: rgba(255, 255, 255, 0.15); 
-  opacity: 1; 
+  opacity: 1; /* Keep opacity for feedback */
+  visibility: visible;
 }
-
-/* Ensure the full screen setup remains */
-/* Time, Date, Prompt styles removed as they are not in index-2.html */
