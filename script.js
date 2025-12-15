@@ -1,8 +1,4 @@
-// Stable, functional version of Invisible Lockscreen Overlay
-// - Double-tap top-left to upload screenshot
-// - Set reference number via PROMPT (removed complicated gestures)
-// - Keypad fully functional
-// - Footer links are PASSIVE placeholders (Emergency/Cancel)
+// GhostLock: Final, stable script with all original hidden controls restored.
 
 const bgUpload = document.getElementById('bgUpload');
 const lockscreen = document.getElementById('lockscreen');
@@ -12,7 +8,7 @@ const indicatorContainer = document.getElementById('indicatorContainer');
 const indicatorValue = document.getElementById('indicatorValue');
 const emergencyBtn = document.getElementById('emergencyBtn'); 
 const cancelLink = document.getElementById('cancelLink'); 
-const promptElement = document.querySelector('.prompt'); // Used for a hidden control
+const promptElement = document.querySelector('.prompt'); 
 
 let entered = '';
 let referenceNumber = 1000; 
@@ -21,7 +17,7 @@ const maxDigits = 4;
 let hideTimer = null;
 const DISPLAY_MS = 8000; 
 
-// --- Keypad Building (Simple & Stable) ---
+// --- Keypad Building (Restored with Digits/Sub-text) ---
 const labels = [
     '1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '↵'
 ];
@@ -32,19 +28,37 @@ function makeKey(label) {
   btn.className = 'key';
   keypad.appendChild(btn);
 
-  // FIX: Key content is just the label, CSS styles the size/font
-  btn.textContent = label; 
+  let subtext = '';
+  if (label === '2') subtext = 'ABC';
+  else if (label === '3') subtext = 'DEF';
+  else if (label === '4') subtext = 'GHI';
+  else if (label === '5') subtext = 'JKL';
+  else if (label === '6') subtext = 'MNO';
+  else if (label === '7') subtext = 'PQRS';
+  else if (label === '8') subtext = 'TUV';
+  else if (label === '9') subtext = 'WXYZ';
 
+  // Render keypad content using CSS classes
+  btn.innerHTML = `<span class="key-digit">${label}</span>` + 
+                  (subtext ? `<span class="key-sub">${subtext}</span>` : '');
+  
+  // Custom styling for the zero key's content
+  if (label === '0') {
+      btn.innerHTML = `<span class="key-digit">${label}</span>`;
+  }
+  
+  // Event listener for input
   btn.addEventListener('click', () => {
-    if (label === '⌫' || label === '↵') {
-        // These keys are functionally invisible and handled by the standard input
-        attemptUnlock(); 
+    if (label === '⌫') {
+      removeDigit();
+    } else if (label === '↵') {
+      attemptUnlock();
     } else {
-      addDigit(String(label));
+      if (label.match(/[0-9]/)) {
+        addDigit(String(label));
+      }
     }
   });
-  // Note: Since '⌫' and '↵' are not standard numbers, they won't trigger addDigit.
-  // We handle input and delete via the Cancel link and maxDigits check.
 }
 
 function renderDots() {
@@ -76,53 +90,13 @@ function removeDigit() {
   renderDots();
 }
 
-// --- Footer Link Functionality ---
+// --- Footer Link Functionality (Delete/Cancel) ---
 cancelLink.addEventListener('click', (ev) => {
     ev.preventDefault();
     if (entered.length > 0) {
-        removeDigit(); // Delete last digit
-    } else {
-        // "Cancel" state: No action needed for a simple overlay
+        removeDigit(); 
     }
 });
-
-// Triple-tap the 'Enter Passcode' prompt to set reference number (NEW STABLE CONTROL)
-(function() {
-  let tapCount = 0;
-  let tapTimer = null;
-  const TRIPLE_TAP_MS = 500; 
-
-  if (promptElement) {
-    promptElement.addEventListener('click', (ev) => {
-      ev.preventDefault();
-      
-      tapCount++;
-
-      if (tapTimer) clearTimeout(tapTimer);
-      
-      tapTimer = setTimeout(() => {
-        tapCount = 0;
-      }, TRIPLE_TAP_MS);
-
-      if (tapCount === 3) {
-        tapCount = 0;
-        clearTimeout(tapTimer);
-        
-        const current = String(referenceNumber);
-        const input = prompt('Enter NEW reference number:', current);
-        if (input !== null) {
-          const num = parseFloat(input);
-          if (!isNaN(num)) {
-            referenceNumber = num;
-            localStorage.setItem('referenceNumber', String(referenceNumber));
-          }
-        }
-      }
-    });
-  }
-})();
-// --- End Stable Control ---
-
 
 function attemptUnlock() {
   if (entered.length !== maxDigits) return;
@@ -163,8 +137,6 @@ function flashUnlock() {
   );
 }
 
-// --- CONFIGURATION & PERSISTENCE ---
-
 function loadSettings() {
     const savedBg = localStorage.getItem('lockscreenBg');
     if (savedBg) {
@@ -179,7 +151,43 @@ function loadSettings() {
     }
 }
 
-// --- Double-tap top-left to upload screenshot (Retained) ---
+
+// --- RESTORED FEATURE 1: Triple-tap Passcode Prompt to Set Reference Number ---
+(function() {
+  let tapCount = 0;
+  let tapTimer = null;
+  const TRIPLE_TAP_MS = 500; 
+
+  if (promptElement) {
+    promptElement.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      
+      tapCount++;
+
+      if (tapTimer) clearTimeout(tapTimer);
+      
+      tapTimer = setTimeout(() => {
+        tapCount = 0;
+      }, TRIPLE_TAP_MS);
+
+      if (tapCount === 3) {
+        tapCount = 0;
+        clearTimeout(tapTimer);
+        
+        const current = String(referenceNumber);
+        const input = prompt('Enter NEW reference number:', current);
+        if (input !== null) {
+          const num = parseFloat(input);
+          if (!isNaN(num)) {
+            referenceNumber = num;
+            localStorage.setItem('referenceNumber', String(referenceNumber));
+          }
+        }
+      }
+    });
+  }
+})();
+// --- RESTORED FEATURE 2: Double-tap top-left to upload screenshot ---
 (function() {
   let lastTap = 0;
   const DOUBLE_TAP_MS = 300;
