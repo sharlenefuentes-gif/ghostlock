@@ -9,15 +9,15 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-* { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+/* FIX: Simple touch handling to avoid blocking input */
+* { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
 
-/* ... (Omitted HTML/Body/App/Lockscreen styles as they are correct) ... */
+/* --- PWA/iOS Layout Fixes Retained --- */
 html, body {
   height: 100%;
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh; 
-
   margin: 0;
   padding: 0;
   background: var(--bg-color);
@@ -25,7 +25,6 @@ html, body {
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
-
 .app { 
   display: flex; 
   flex-direction: column; 
@@ -62,6 +61,8 @@ html, body {
   width: 100%;
   margin-bottom: 40px;
 }
+
+/* Dots and Keypad */
 .dots {
   display: flex;
   gap: 16px;
@@ -84,7 +85,8 @@ html, body {
   gap: 20px;
   justify-content: center;
 }
-/* Keypad Buttons */
+
+/* FIX: Keypad Buttons (Reverted to simple style) */
 .key {
   width: 80px;
   height: 80px;
@@ -93,41 +95,23 @@ html, body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   display: flex;
-  flex-direction: column; /* FIX: Allow digit and sub-text to stack */
   align-items: center;
   justify-content: center;
-  color: #fff; /* Ensure key content is white */
+  font-size: 32px; /* Set the main size here */
+  font-weight: 400;
   cursor: pointer;
+  color: #fff;
   transition: background 0.1s;
   user-select: none;
 }
 .key:active {
   background: rgba(255,255,255,0.15);
 }
-
-/* Keypad Content Styles */
-.key-digit {
-    font-size: 32px;
-    font-weight: 400;
-    line-height: 1.1;
-}
-.key-sub {
-    font-size: 10px;
-    font-weight: 500;
-    opacity: 0.8;
-    line-height: 1;
-    margin-top: 2px;
-}
-/* Style adjustments for the Enter/Delete/Erase keys */
-.key:nth-child(10) .key-sub, /* Erase sub-text */
-.key:nth-child(12) .key-sub { /* Enter sub-text */
-  /* These keys don't have sub-text, but setting explicit styles for digits below */
-}
-.key:nth-child(10) .key-digit, /* Erase digit */
-.key:nth-child(12) .key-digit { /* Enter digit */
-    font-size: 18px;
-    font-weight: 500;
-    opacity: 0.8; 
+/* Style adjustments for the Enter/Delete/Erase keys content */
+.key:nth-child(10), .key:nth-child(12) {
+  font-size: 18px; /* Smaller text for Delete/Enter */
+  font-weight: 500;
+  opacity: 0.8; 
 }
 
 
@@ -139,12 +123,8 @@ html, body {
     align-items: center;
     padding-bottom: 10px; 
     margin-top: 20px; 
-    /* FIX 2: Explicitly remove any box-shadow or border that could be the line */
-    box-shadow: none;
     border: none;
-    /* FIX 3: Add margin to the left link to create clear space */
-    margin-left: 20px;
-    margin-right: 20px;
+    box-shadow: none;
 }
 .footer-link {
     font-size: 18px; 
@@ -156,8 +136,7 @@ html, body {
     text-shadow: 0 1px 4px rgba(0,0,0,0.8); 
     transition: opacity 0.1s;
     user-select: none;
-    border: none;
-    /* FIX 4: Explicitly remove any background/border */
+    border: none; 
     background: transparent;
     border-radius: 0;
 }
@@ -165,17 +144,33 @@ html, body {
     opacity: 0.7;
 }
 
-/* Invisible mode helpers: hide visuals but keep interactive areas */
-.invisible .prompt,
+
+/* Indicator and Invisible mode (Simplified and stable) */
+.indicator {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px)); 
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--indicator-bg);
+  color: var(--indicator-fg);
+  font-size: 11px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  z-index: 40;
+  transition: opacity .18s;
+}
+.indicator.hidden { opacity: 0.02; pointer-events: none; }
+.indicator .tiny { font-size: 10px; opacity: 0.95; }
+
+.invisible .prompt, 
 .invisible .dots,
 .invisible .key {
   opacity: 0;
   visibility: hidden;
-}
-/* Ensure the content of the hidden keys is also hidden */
-.invisible .key-digit,
-.invisible .key-sub {
-    opacity: 0;
 }
 .invisible .key:active {
   background: rgba(255, 255, 255, 0.15); 
