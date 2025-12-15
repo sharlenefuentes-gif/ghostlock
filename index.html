@@ -1,75 +1,26 @@
-<!doctype html>
+<! doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Invisible Mock Lockscreen Overlay</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Invisible Lockscreen Overlay</title>
+  <link rel="stylesheet" href="styles. css" />
 </head>
 <body>
   <div class="app">
-    <header class="controls">
-      <label>
-        Upload lockscreen image:
-        <input id="bgUpload" type="file" accept="image/*" />
-      </label>
-
-      <label>
-        Reference number:
-        <input id="referenceNumber" type="number" value="1000" />
-      </label>
-
-      <label>
-        Subtraction:
-        <select id="direction">
-          <option value="entered-minus-ref">entered - reference</option>
-          <option value="ref-minus-entered">reference - entered</option>
-        </select>
-      </label>
-
-      <label>
-        <input id="showIndicator" type="checkbox" />
-        Show small indicator (visible)
-      </label>
-
-      <label>
-        <input id="invisibleMode" type="checkbox" />
-        Invisible overlay
-      </label>
-
-      <label>
-        <input id="devOutlines" type="checkbox" />
-        Dev outlines (help align)
-      </label>
-    </header>
-
-    <main class="lockscreen" id="lockscreen" aria-live="polite">
-      <!-- Hidden time/date (kept for layout but not used in invisible mode) -->
-      <div class="time" id="time" aria-hidden="true"></div>
-      <div class="date" id="date" aria-hidden="true"></div>
-
+    <main class="lockscreen" id="lockscreen">
       <div class="passcode-panel" id="panel">
-        <div class="prompt" id="prompt">Enter Passcode</div>
-        <div class="dots" id="dots" aria-hidden="true"></div>
-
-        <div class="keypad" id="keypad" aria-hidden="false"></div>
-
-        <div class="action-row" id="actions">
-          <button id="erase">Erase</button>
-          <button id="unlock" disabled>Unlock</button>
-        </div>
+        <div class="keypad" id="keypad"></div>
       </div>
 
-      <!-- Small visible indicator (explicitly enabled) -->
+      <!-- Hidden file input — triggered by double-tap top-left -->
+      <input id="bgUpload" type="file" accept="image/*" style="display: none" />
+
+      <!-- Small visible indicator at bottom -->
       <div id="indicatorContainer" class="indicator hidden" role="status" aria-live="polite" aria-atomic="true">
-        <span id="indicatorLabel">Difference</span>
         <span id="indicatorValue" class="tiny">—</span>
       </div>
     </main>
-
-    <footer class="info">
-      Upload your screenshot, enable "Invisible overlay", then tap the screen in places that match your screenshot keypad.
-    </footer>
   </div>
 
   <script src="script.js"></script>
