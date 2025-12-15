@@ -1,6 +1,6 @@
 {
   "name": "Magic Lock",
-  "short_name": "Lock",
+  "short_name": "GhostLock",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
