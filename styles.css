@@ -10,9 +10,12 @@
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  /* Dynamic Viewport Height for perfect fit on mobile, preventing cropping */
-  height: 100dvh; 
-  width: 100vw;
+  /* Reinforced height chain for max PWA compatibility (Fixes cropping) */
+  height: 100%;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh; 
+
   margin: 0;
   padding: 0;
   background: var(--bg-color);
@@ -31,7 +34,9 @@ html, body {
 /* --- HOMESCREEN --- */
 .homescreen {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0; left: 0; 
+  width: 100%; 
+  height: 100%; /* Now guaranteed to be full screen */
   background-color: #222;
   background-size: cover;
   background-position: center;
@@ -53,7 +58,9 @@ html, body {
 /* --- LOCKSCREEN --- */
 .lockscreen {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0; left: 0; 
+  width: 100%; 
+  height: 100%; /* Now guaranteed to be full screen */
   background-color: #000;
   background-size: cover;
   background-position: center;
