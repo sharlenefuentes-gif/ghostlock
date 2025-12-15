@@ -84,6 +84,7 @@ html, body {
   justify-content: flex-end; 
   width: 100%;
   align-items: center;
+  /* Pushed up from the bottom icons */
   margin-bottom: 60px; 
 }
 
