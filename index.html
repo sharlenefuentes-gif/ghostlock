@@ -2,48 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no,maximum-scale=1" />
-  <title>GhostLock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Magic Lockscreen</title>
   <link rel="stylesheet" href="styles.css" />
-  
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
   <div class="app">
+    
+    <main class="homescreen" id="homescreen">
+      <div id="magicResult" class="magic-result"></div>
+    </main>
+
     <main class="lockscreen" id="lockscreen">
+      
+      <div class="status-bar-spacer"></div>
+
+      <div class="time-container">
+        </div>
+
       <div class="passcode-panel" id="panel">
-        <div class="prompt">Enter Passcode</div> 
-        <div class="dots" id="dots"></div> 
+        <div class="prompt">Enter Passcode</div>
+        <div class="dots" id="dots"></div>
         <div class="keypad" id="keypad"></div>
       </div>
-      
+
       <div class="lock-footer">
-        <a class="footer-link" id="emergencyBtn">Emergency</a>
-        <a class="footer-link" id="cancelLink">Cancel</a>
-      </div>
-
-      <input id="bgUpload" type="file" accept="image/*" style="display: none" />
-
-      <div id="indicatorContainer" class="indicator hidden" role="status" aria-live="polite" aria-atomic="true">
-        <span id="indicatorValue" class="tiny">—</span>
-      </div>
+        <div class="icon-circle stub"></div> <div class="icon-circle stub"></div> </div>
     </main>
+
+    <input id="uploadLock" type="file" accept="image/*" style="display: none" />
+    <input id="uploadHome" type="file" accept="image/*" style="display: none" />
+
   </div>
-  
   <script src="script.js"></script>
-  
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then(registration => {
-          console.log('SW registered:', registration.scope);
-        }).catch(error => {
-          console.log('SW registration failed:', error);
-        });
-      });
-    }
-  </script>
 </body>
 </html>
