@@ -1,46 +1,37 @@
-// Invisible overlay mock lockscreen
-// - Upload your screenshot and enable "Invisible overlay" to make UI visuals transparent but still interactive.
-// - Nothing is stored. The computed difference can be shown for 8 seconds if you enable the indicator.
+// Completely invisible overlay lockscreen
+// - Double-tap top-left to upload screenshot (no visible button)
+// - Two-finger swipe to set reference number (no visible input)
+// - All keypad areas invisible but fully functional
+// - Difference value ALWAYS shows at bottom for 8 seconds after unlock
+// - Nothing is stored or logged anywhere
 
 const bgUpload = document.getElementById('bgUpload');
 const lockscreen = document.getElementById('lockscreen');
 const keypad = document.getElementById('keypad');
 const dots = document.getElementById('dots');
-const eraseBtn = document.getElementById('erase');
-const unlockBtn = document.getElementById('unlock');
-const referenceNumberInput = document.getElementById('referenceNumber');
-const directionSelect = document.getElementById('direction');
-const showIndicatorCheckbox = document.getElementById('showIndicator');
 const indicatorContainer = document.getElementById('indicatorContainer');
 const indicatorValue = document.getElementById('indicatorValue');
-const indicatorLabel = document.getElementById('indicatorLabel');
-const invisibleModeCheckbox = document.getElementById('invisibleMode');
-const devOutlinesCheckbox = document.getElementById('devOutlines');
 
 let entered = '';
+let referenceNumber = 1000; // default reference number (set via swipe)
+let subtractDirection = 'entered-minus-ref'; // entered - reference (default)
 const maxDigits = 4;
 let hideTimer = null;
 const DISPLAY_MS = 8000; // 8 seconds
 
-// build keypad (1..9, erase, 0, enter)
-const labels = [1,2,3,4,5,6,7,8,9,'⌫',0,'↵'];
+// Build keypad (1.. 9, erase, 0, enter)
+const labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, '⌫', 0, '↵'];
 labels.forEach(l => makeKey(l));
 
-function makeKey(label){
+function makeKey(label) {
   const btn = document.createElement('div');
   btn.className = 'key';
-  // if numeric show number and small sub text, otherwise just symbol
-  if(typeof label === 'number' || /^[0-9]$/.test(String(label))){
-    btn.innerHTML = `<div class="num">${label}</div>`;
-  } else {
-    btn.textContent = label;
-  }
   keypad.appendChild(btn);
 
   btn.addEventListener('click', () => {
-    if(label === '⌫') {
+    if (label === '⌫') {
       removeDigit();
-    } else if(label === '↵') {
+    } else if (label === '↵') {
       attemptUnlock();
     } else {
       addDigit(String(label));
@@ -48,113 +39,168 @@ function makeKey(label){
   });
 }
 
-function renderDots(){
+function renderDots() {
   dots.innerHTML = '';
-  for(let i=0;i<maxDigits;i++){
+  for (let i = 0; i < maxDigits; i++) {
     const d = document.createElement('div');
-    d.className = 'dot' + (i < entered.length ? ' filled' : '');
+    d.className = 'dot' + (i < entered. length ? ' filled' : '');
     dots.appendChild(d);
   }
-  unlockBtn.disabled = (entered.length !== maxDigits);
 }
-function addDigit(d){
-  if(entered.length >= maxDigits) return;
+
+function addDigit(d) {
+  if (entered.length >= maxDigits) return;
   entered += d;
   renderDots();
 }
-function removeDigit(){
-  entered = entered.slice(0,-1);
+
+function removeDigit() {
+  entered = entered.slice(0, -1);
   renderDots();
 }
 
-eraseBtn.addEventListener('click', () => { entered=''; renderDots(); });
-unlockBtn.addEventListener('click', attemptUnlock);
-
-function attemptUnlock(){
-  if(entered.length !== maxDigits) return;
+function attemptUnlock() {
+  if (entered.length !== maxDigits) return;
   const enteredNum = parseInt(entered, 10);
-  const refNum = parseFloat(referenceNumberInput.value) || 0;
-  const dir = directionSelect.value;
-  const diff = dir === 'entered-minus-ref' ? (enteredNum - refNum) : (refNum - enteredNum);
+  const diff = subtractDirection === 'entered-minus-ref' 
+    ? (enteredNum - referenceNumber) 
+    : (referenceNumber - enteredNum);
 
-  // Only display difference if indicator is enabled.
-  if(showIndicatorCheckbox.checked){
-    showDifferenceTemporarily(diff, DISPLAY_MS);
-  }
+  // ALWAYS show the difference for 8 seconds
+  showDifferenceTemporarily(diff, DISPLAY_MS);
 
-  // visually "flash" (very subtle) so user knows input registered
+  // subtle feedback
   flashUnlock();
 
-  // clear entered for the next attempt
+  // clear for next attempt
   entered = '';
   renderDots();
 }
 
-function showDifferenceTemporarily(diff, ms){
-  if(hideTimer){
+function showDifferenceTemporarily(diff, ms) {
+  if (hideTimer) {
     clearTimeout(hideTimer);
     hideTimer = null;
   }
   indicatorValue.textContent = String(diff);
-  indicatorLabel.textContent = 'Difference';
   indicatorContainer.classList.remove('hidden');
 
   hideTimer = setTimeout(() => {
     indicatorValue.textContent = '—';
-    indicatorContainer.classList.add('hidden');
+    indicatorContainer. classList.add('hidden');
     hideTimer = null;
   }, ms);
 }
 
-// invisible mode handler
-invisibleModeCheckbox.addEventListener('change', () => {
-  if(invisibleModeCheckbox.checked){
-    document.body.classList.add('invisible');
-  } else {
-    document.body.classList.remove('invisible');
-  }
-});
+function flashUnlock() {
+  lockscreen.animate(
+    [
+      { transform:  'scale(1)' },
+      { transform: 'scale(1.006)' },
+      { transform: 'scale(1)' }
+    ],
+    { duration: 180, easing: 'ease-out' }
+  );
+}
 
-// dev outlines toggle
-devOutlinesCheckbox.addEventListener('change', () => {
-  if(devOutlinesCheckbox.checked){
-    document.body.classList.add('dev-outlines');
-  } else {
-    document.body.classList.remove('dev-outlines');
-  }
-});
+// --- Double-tap top-left to upload screenshot ---
+(function() {
+  let lastTap = 0;
+  const DOUBLE_TAP_MS = 300;
+  const TOP_LEFT_MAX_X = 120;
+  const TOP_LEFT_MAX_Y = 120;
 
-// indicator toggle handler
-showIndicatorCheckbox.addEventListener('change', () => {
-  if(!showIndicatorCheckbox.checked){
-    indicatorValue.textContent = '—';
-    indicatorContainer.classList.add('hidden');
+  function isInTopLeft(x, y) {
+    return x <= TOP_LEFT_MAX_X && y <= TOP_LEFT_MAX_Y;
   }
-});
 
-// background upload handler
+  // Touch-based double-tap
+  window. addEventListener('touchend', (ev) => {
+    if (! ev.changedTouches || ev.changedTouches. length !== 1) return;
+    const t = ev.changedTouches[0];
+    if (! isInTopLeft(t.clientX, t.clientY)) return;
+    const now = Date. now();
+    if (now - lastTap <= DOUBLE_TAP_MS) {
+      bgUpload.click();
+      lastTap = 0;
+    } else {
+      lastTap = now;
+    }
+  }, { passive: true });
+
+  // Mouse double-click fallback for desktop testing
+  window.addEventListener('dblclick', (ev) => {
+    if (isInTopLeft(ev.clientX, ev. clientY)) bgUpload.click();
+  });
+})();
+
+// --- Two-finger swipe to set reference number ---
+(function() {
+  let twoTouchStart = null;
+  const MIN_SWIPE_DISTANCE = 40;
+
+  window.addEventListener('touchstart', (ev) => {
+    if (ev.touches && ev.touches.length === 2) {
+      twoTouchStart = [
+        { x: ev.touches[0]. clientX, y: ev.touches[0].clientY },
+        { x: ev.touches[1].clientX, y: ev. touches[1].clientY }
+      ];
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchend', (ev) => {
+    if (!twoTouchStart) return;
+
+    const changed = ev.changedTouches;
+    if (! changed || changed.length === 0) {
+      twoTouchStart = null;
+      return;
+    }
+
+    const startAvgY = (twoTouchStart[0].y + twoTouchStart[1].y) / 2;
+    let endAvgY;
+
+    if (changed. length >= 2) {
+      endAvgY = (changed[0].clientY + changed[1].clientY) / 2;
+    } else if (changed. length === 1) {
+      endAvgY = (changed[0].clientY + startAvgY * 2 - twoTouchStart[0].y) / 2;
+    } else {
+      twoTouchStart = null;
+      return;
+    }
+
+    const deltaY = startAvgY - endAvgY;
+
+    if (Math. abs(deltaY) >= MIN_SWIPE_DISTANCE) {
+      // Two-finger swipe detected — prompt for reference number
+      const current = String(referenceNumber);
+      const input = prompt('Enter reference number:', current);
+      if (input !== null) {
+        const num = parseFloat(input);
+        if (!isNaN(num)) {
+          referenceNumber = num;
+        }
+      }
+    }
+
+    twoTouchStart = null;
+  }, { passive: true });
+})();
+
+// --- Background upload handler ---
 bgUpload.addEventListener('change', (ev) => {
-  const f = ev.target.files && ev.target.files[0];
-  if(!f) return;
+  const f = ev.target. files && ev.target.files[0];
+  if (! f) return;
   const reader = new FileReader();
   reader.onload = () => {
     lockscreen.style.backgroundImage = `url('${reader.result}')`;
-    // default background sizing is cover; if you want exact pixel fit try contain
     lockscreen.style.backgroundSize = 'cover';
+    lockscreen.style.backgroundPosition = 'center';
   };
   reader.readAsDataURL(f);
 });
 
-function flashUnlock(){
-  // subtle pulse so an unlock attempt is obvious to the operator
-  lockscreen.animate([
-    { transform: 'scale(1)' },
-    { transform: 'scale(1.008)' },
-    { transform: 'scale(1)' }
-  ], {duration:220, easing:'ease-out'});
-}
-
-// init
+// --- Init ---
 renderDots();
 indicatorContainer.classList.add('hidden');
 indicatorValue.textContent = '—';
