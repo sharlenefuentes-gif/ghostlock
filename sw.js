@@ -1,52 +1,27 @@
-const CACHE_NAME = 'ghostlock-cache-v1';
-const urlsToCache = [
-  './',
-  'index.html',
-  'styles.css',
-  'script.js',
-  'manifest.json',
-  // Assuming these files exist in your 'icons' folder:
-  'icons/apple-touch-icon.png', 
-  'icons/icon-192x192.png',
-  'icons/icon-512x512.png'
+const CACHE_NAME = 'magic-lock-v1';
+const ASSETS = [
+  './', // Caches the root page
+  './index.html',
+  './styles.css',
+  './script.js',
+  './manifest.json',
+  './icon.png' // Ensure the icon is also cached for offline
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
+// Install the Service Worker and Cache all core files
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
   );
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        // No cache hit - fetch from network
-        return fetch(event.request);
-      }
-    )
-  );
-});
-
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
+// Serve Cached Files when Offline
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then((response) => {
+      return response || fetch(e.request);
     })
   );
 });
