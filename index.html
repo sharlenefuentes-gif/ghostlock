@@ -10,13 +10,15 @@
   <div class="app">
     <main class="lockscreen" id="lockscreen">
       <div class="passcode-panel" id="panel">
+        <div class="prompt">Enter Passcode</div> 
+        
         <div class="dots" id="dots"></div> 
         <div class="keypad" id="keypad"></div>
       </div>
       
       <div class="lock-footer">
         <a class="footer-link" id="emergencyBtn">Emergency</a>
-        <a class="footer-link">Cancel</a>
+        <a class="footer-link" id="cancelLink">Cancel</a>
       </div>
 
       <input id="bgUpload" type="file" accept="image/*" style="display: none" />
