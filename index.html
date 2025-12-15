@@ -1,28 +1,40 @@
-<! doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Invisible Lockscreen Overlay</title>
-  <link rel="stylesheet" href="styles. css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Magic Lockscreen</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app">
+    
+    <main class="homescreen" id="homescreen">
+      <div id="magicResult" class="magic-result"></div>
+    </main>
+
     <main class="lockscreen" id="lockscreen">
+      
+      <div class="status-bar-spacer"></div>
+
+      <div class="time-container">
+        </div>
+
       <div class="passcode-panel" id="panel">
+        <div class="prompt">Enter Passcode</div>
+        <div class="dots" id="dots"></div>
         <div class="keypad" id="keypad"></div>
       </div>
 
-      <!-- Hidden file input — triggered by double-tap top-left -->
-      <input id="bgUpload" type="file" accept="image/*" style="display: none" />
-
-      <!-- Small visible indicator at bottom -->
-      <div id="indicatorContainer" class="indicator hidden" role="status" aria-live="polite" aria-atomic="true">
-        <span id="indicatorValue" class="tiny">—</span>
-      </div>
+      <div class="lock-footer">
+        <div class="icon-circle stub"></div> <div class="icon-circle stub"></div> </div>
     </main>
-  </div>
 
+    <input id="uploadLock" type="file" accept="image/*" style="display: none" />
+    <input id="uploadHome" type="file" accept="image/*" style="display: none" />
+
+  </div>
   <script src="script.js"></script>
 </body>
 </html>
