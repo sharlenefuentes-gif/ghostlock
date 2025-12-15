@@ -4,7 +4,8 @@ const ASSETS = [
   './index.html',
   './styles.css',
   './script.js',
-  './manifest.json'
+  './manifest.json',
+  './icon.png' // Explicitly cache the homescreen icon
 ];
 
 // Install the Service Worker and Cache all core files
