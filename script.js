@@ -1,13 +1,21 @@
 // --- CONFIGURATION ---
-// Changed from const to let, initialized to 4, then overwritten by loadSettings()
 let maxDigits = 4; 
 
-// --- STATE ---
+// --- ACTIVATION & STATE ---
+let isActivated = false;
+let activationKey = "Zaq12wsx"; // User-set Key. TRIPLE-TAP BOTTOM-LEFT TO CHANGE!
+
+// --- MAGIC TRICK STATE ---
 let enteredCode = "";
-let referenceNumber = 2024; // Default
-let isUnlocked = false;
+let referenceNumber = 2024; 
+let isLocked = true; // Use isLocked to control the temporary lockscreen state
 
 // --- DOM ELEMENTS ---
+const activationScreen = document.getElementById('activationScreen');
+const activationInput = document.getElementById('activationInput');
+const activateBtn = document.getElementById('activateBtn');
+const activationError = document.getElementById('activationError');
+
 const lockscreen = document.getElementById('lockscreen');
 const homescreen = document.getElementById('homescreen');
 const dotsContainer = document.getElementById('dots');
@@ -15,16 +23,64 @@ const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');
 const cancelBtn = document.getElementById('cancelBtn');
 
-// Upload Inputs
 const uploadLock = document.getElementById('uploadLock');
 const uploadHome = document.getElementById('uploadHome');
 
 // --- INITIALIZATION ---
-loadSettings(); // MUST load settings before initKeypad/renderDots
+loadSettings(); 
+initializeApp();
 initKeypad();
 renderDots();
 
-// --- KEYPAD GENERATION ---
+// --- ACTIVATION FLOW ---
+
+function initializeApp() {
+    if (isActivated) {
+        unlockPermanently();
+    } else {
+        showActivationScreen();
+    }
+}
+
+function showActivationScreen() {
+    activationScreen.style.opacity = 1;
+    activationScreen.style.pointerEvents = 'auto';
+    activationInput.focus();
+    
+    // Wire up button and enter key
+    activateBtn.addEventListener('click', handleActivationAttempt);
+    activationInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleActivationAttempt();
+    });
+}
+
+function handleActivationAttempt() {
+    const input = activationInput.value.trim();
+    if (input === activationKey) {
+        isActivated = true;
+        saveSettings(); // Save the permanent unlock state
+        unlockPermanently();
+    } else {
+        activationError.textContent = "Invalid Key";
+        activationError.style.opacity = 1;
+        setTimeout(() => activationError.style.opacity = 0, 1500);
+        activationInput.value = '';
+    }
+}
+
+function unlockPermanently() {
+    // Hide the activation screen
+    activationScreen.style.opacity = 0;
+    activationScreen.style.pointerEvents = 'none';
+
+    // Set the main lockscreen to be hidden and unlocked 
+    lockscreen.classList.add('permanently-unlocked');
+    lockscreen.classList.add('unlocked');
+    isLocked = false;
+}
+
+// --- MAGIC TRICK LOGIC ---
+
 function initKeypad() {
   const keys = [
     { n: '1', s: '' }, { n: '2', s: 'ABC' }, { n: '3', s: 'DEF' },
@@ -51,21 +107,17 @@ function initKeypad() {
   });
 }
 
-// Cancel Button Logic (Resets input)
 cancelBtn.addEventListener('click', () => {
   enteredCode = "";
   renderDots();
 });
 
-// --- CORE LOGIC ---
 function handleInput(digit) {
-  if (isUnlocked) return;
-  // Uses maxDigits variable
+  if (!isLocked) return;
   if (enteredCode.length < maxDigits) { 
     enteredCode += digit;
     renderDots();
     
-    // Uses maxDigits variable
     if (enteredCode.length === maxDigits) { 
       performUnlock();
     }
@@ -74,7 +126,6 @@ function handleInput(digit) {
 
 function renderDots() {
   dotsContainer.innerHTML = '';
-  // Uses maxDigits variable
   for (let i = 0; i < maxDigits; i++) { 
     const dot = document.createElement('div');
     dot.className = 'dot' + (i < enteredCode.length ? ' filled' : '');
@@ -83,7 +134,6 @@ function renderDots() {
   
   if (enteredCode.length > 0) {
     cancelBtn.classList.add('visible');
-    // Uses maxDigits variable
     cancelBtn.textContent = enteredCode.length === maxDigits ? 'Done' : 'Delete'; 
   } else {
     cancelBtn.classList.remove('visible');
@@ -92,57 +142,74 @@ function renderDots() {
 }
 
 function performUnlock() {
-  // Logic: Reference Number - Entered Number
   const userNum = parseInt(enteredCode, 10);
   const result = referenceNumber - userNum;
 
-  // Show the result
   magicResult.textContent = result;
   
-  // Unlock animation
-  isUnlocked = true;
   lockscreen.classList.add('unlocked');
+  isLocked = false;
 
-  // Reset input after a short delay
   setTimeout(() => {
     enteredCode = "";
     renderDots();
   }, 500);
 }
 
+// Hidden control to SHOW the lock screen (for the trick)
 function reLock() {
-  isUnlocked = false;
+  if (!isActivated) return; // Only allow relock if app is activated
+  
+  // Show the lock screen animation
+  lockscreen.classList.remove('permanently-unlocked');
   lockscreen.classList.remove('unlocked');
+
   magicResult.textContent = "";
   enteredCode = "";
+  isLocked = true;
   renderDots();
 }
 
-// --- NEW FUNCTION: Set Max Digits ---
+
+// --- CONFIGURATION CONTROLS ---
+
 function setMaxDigits() {
   const input = prompt("Set Passcode Length (4 or 6):", maxDigits);
   if (input) {
     const num = parseInt(input, 10);
     if (num === 4 || num === 6) {
       maxDigits = num;
-      // Clear entered code when changing length to prevent issues
       enteredCode = ""; 
-      saveSettings(); // Save new setting
+      saveSettings();
       renderDots();
-      // Optional visual feedback
-      alert(`Passcode length set to ${maxDigits} digits. Refreshing display.`);
+      alert(`Passcode length set to ${maxDigits} digits.`);
     } else {
       alert("Invalid input. Please enter 4 or 6.");
     }
   }
 }
 
+// Set the Master Activation Key
+function setActivationKey() {
+    const input = prompt("SET NEW MASTER ACTIVATION KEY:", activationKey);
+    if (input && input.trim() !== "") {
+        activationKey = input.trim();
+        saveSettings();
+        alert(`Master Key updated to: ${activationKey}`);
+    } else {
+        alert("Activation Key not changed.");
+    }
+}
+
+
 // --- STORAGE & SETTINGS ---
 
 function saveSettings() {
   localStorage.setItem('magicRefNum', referenceNumber);
-  // NEW: Save the max digit count
   localStorage.setItem('maxDigits', maxDigits); 
+  // Save the activation state and key
+  localStorage.setItem('isActivated', isActivated ? 'true' : 'false');
+  localStorage.setItem('activationKey', activationKey); 
 }
 
 function saveImage(key, dataUrl) {
@@ -154,15 +221,18 @@ function saveImage(key, dataUrl) {
 }
 
 function loadSettings() {
-  // Load Reference Number
   const savedRef = localStorage.getItem('magicRefNum');
   if (savedRef) referenceNumber = parseInt(savedRef, 10);
   
-  // NEW: Load max digit count
   const savedMaxDigits = localStorage.getItem('maxDigits');
   if (savedMaxDigits) maxDigits = parseInt(savedMaxDigits, 10);
+  
+  // Load activation state and key
+  isActivated = localStorage.getItem('isActivated') === 'true';
+  const savedActivationKey = localStorage.getItem('activationKey');
+  if (savedActivationKey) activationKey = savedActivationKey;
 
-  // Load Images
+
   const savedLock = localStorage.getItem('bgLock');
   if (savedLock) lockscreen.style.backgroundImage = `url('${savedLock}')`;
 
@@ -171,7 +241,7 @@ function loadSettings() {
 }
 
 
-// --- INVISIBLE CONTROLS (UPDATED FOR ROBUST TAPPING) ---
+// --- INVISIBLE CONTROLS ---
 
 // Helper updated for robust tapping (longer timeout)
 function createTouchZone(x, y, w, h, callback, requiredTaps = 2) {
@@ -195,7 +265,6 @@ function createTouchZone(x, y, w, h, callback, requiredTaps = 2) {
       tapTimer = setTimeout(() => { tapCount = 0; }, 500); 
       
       if (tapCount === requiredTaps) {
-        // Prevent default tap behavior (like synthetic click)
         e.preventDefault(); 
         callback();
         tapCount = 0; 
@@ -213,24 +282,16 @@ createTouchZone(0, 0, 100, 100, () => uploadLock.click(), 2);
 createTouchZone(window.innerWidth - 100, 0, 100, 100, () => uploadHome.click(), 2);
 
 // 3. Triple Tap Top-Center: Set Max Digits
-// Width 200px, 100px down from the top.
 createTouchZone(window.innerWidth / 2 - 100, 0, 200, 100, setMaxDigits, 3);
 
-// 4. Triple Tap Bottom-Center (on Homescreen): Re-Lock (Uses standard click listener)
-let bottomTapCount = 0;
-let bottomTapTimer = null;
-document.addEventListener('click', (e) => {
-  if (!isUnlocked) return;
-  // Detect clicks in the bottom area to prevent accidental triple-tap
-  if (e.clientY > window.innerHeight - 150) {
-    bottomTapCount++;
-    if (bottomTapTimer) clearTimeout(bottomTapTimer);
-    bottomTapTimer = setTimeout(() => { bottomTapCount = 0; }, 400);
-    if (bottomTapCount === 3) reLock();
-  }
-});
+// **CONTROL** 4. Triple Tap Bottom-Left: Set Activation Key
+createTouchZone(0, window.innerHeight - 100, 100, 100, setActivationKey, 3);
 
-// 5. Two-Finger Swipe: Set Reference Number (Vertical swipe detection)
+// 5. Triple Tap Bottom-Right: Relock Screen (Brings back the magic lock)
+createTouchZone(window.innerWidth - 100, window.innerHeight - 100, 100, 100, reLock, 3);
+
+
+// 6. Two-Finger Swipe: Set Reference Number (Vertical swipe detection)
 let twoFingerStart = null;
 window.addEventListener('touchstart', (e) => {
   if (e.touches.length === 2) {
@@ -245,7 +306,7 @@ window.addEventListener('touchend', (e) => {
       const input = prompt("Set Reference Number:", referenceNumber);
       if (input) {
         referenceNumber = parseInt(input, 10);
-        saveSettings(); // Save new number immediately
+        saveSettings(); 
       }
     }
     twoFingerStart = null;
