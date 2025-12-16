@@ -71,7 +71,7 @@ if (cancelFooterBtn) {
 // NEW: Footer Emergency Button Logic (Example)
 if (emergencyBtn) {
     emergencyBtn.addEventListener('click', () => {
-      alert("Emergency services not available in this demo.");
+      alert("Emergency dialer functionality would go here.");
     });
 }
 
