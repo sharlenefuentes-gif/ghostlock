@@ -70,7 +70,6 @@ html, body {
   justify-content: flex-end; 
   align-items: center;
   transition: opacity 0.35s ease, transform 0.35s ease;
-  /* FIX: Remove bottom padding from lockscreen to prevent cropping when image is set */
   padding-bottom: 0; 
 }
 
@@ -92,8 +91,8 @@ html, body {
   justify-content: flex-end; 
   width: 100%;
   align-items: center;
-  /* Margin reduced to accommodate the new banner height */
-  margin-bottom: 20px; 
+  /* FIX: Increased margin to push keypad layout higher */
+  margin-bottom: 100px; 
 }
 
 .passcode-panel {
@@ -167,15 +166,12 @@ html, body {
   color: #fff;
   margin-top: 10px;
   cursor: pointer;
-  /* This button is now only a placeholder, visually hidden */
   opacity: 0; 
   transition: opacity 0.2s;
 }
 .cancel-btn.visible { opacity: 1; }
 
-/* --- REMOVED: Old .lock-footer and .icon-circle styles that cause conflict --- */
-
-/* --- NEW LOCK FOOTER BANNER STYLE (Seamless and Plain Text) --- */
+/* --- NEW LOCK FOOTER BANNER STYLE (Now Seamless and Fully Transparent) --- */
 .lock-footer-banner {
   position: absolute;
   bottom: 0; 
@@ -186,10 +182,10 @@ html, body {
   align-items: center;
   justify-content: space-between; 
   
-  /* Background styling for the seamless blurred look */
-  background-color: rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* FIX: Set background and backdrop filter to transparent/none for seamless look */
+  background-color: transparent; 
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 
   border-radius: 0;
   padding: 0 20px;
@@ -209,12 +205,11 @@ html, body {
   color: var(--text-color);
   padding: 0 10px; 
   
-  /* FIX: Remove active state to make the button visually plain text */
+  /* Retain plain text appearance on click */
   transition: none; 
 }
 
 .footer-button:active {
-  /* FIX: Remove the active visual change */
   background-color: transparent; 
 }
 
