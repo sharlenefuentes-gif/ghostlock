@@ -36,7 +36,7 @@ html, body {
   position: absolute;
   top: 0; left: 0; 
   width: 100%; 
-  height: 100%; /* Now guaranteed to be full screen */
+  height: 100%; 
   background-color: #222;
   background-size: cover;
   background-position: center;
@@ -60,7 +60,7 @@ html, body {
   position: absolute;
   top: 0; left: 0; 
   width: 100%; 
-  height: 100%; /* Now guaranteed to be full screen */
+  height: 100%; 
   background-color: #000;
   background-size: cover;
   background-position: center;
@@ -70,7 +70,7 @@ html, body {
   justify-content: flex-end; 
   align-items: center;
   transition: opacity 0.35s ease, transform 0.35s ease;
-  /* Removed padding-bottom for the old circular buttons */
+  /* Removed old padding-bottom to allow banner to reach the bottom */
 }
 
 .lockscreen.unlocked {
