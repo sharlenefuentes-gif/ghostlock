@@ -13,7 +13,11 @@ const homescreen = document.getElementById('homescreen');
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');
-const cancelBtn = document.getElementById('cancelBtn');
+const cancelBtn = document.getElementById('cancelBtn'); // This is the near-dot button
+
+// NEW: Footer buttons
+const emergencyBtn = document.getElementById('emergencyBtn');
+const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 
 // Upload Inputs
 const uploadLock = document.getElementById('uploadLock');
@@ -51,11 +55,25 @@ function initKeypad() {
   });
 }
 
-// Cancel Button Logic (Resets input)
+// Cancel Button Logic (Resets input) - KEPT FOR NEAR-DOT CANCEL/DONE
 cancelBtn.addEventListener('click', () => {
   enteredCode = "";
   renderDots();
 });
+
+// NEW: Footer Cancel Button Logic
+if (cancelFooterBtn) {
+    cancelFooterBtn.addEventListener('click', () => {
+      enteredCode = "";
+      renderDots();
+    });
+}
+// NEW: Footer Emergency Button Logic (Example)
+if (emergencyBtn) {
+    emergencyBtn.addEventListener('click', () => {
+      alert("Emergency services not available in this demo.");
+    });
+}
 
 // --- CORE LOGIC ---
 function handleInput(digit) {
@@ -81,6 +99,7 @@ function renderDots() {
     dotsContainer.appendChild(dot);
   }
   
+  // 1. Logic for the NEAR-DOT cancel button (Used for Delete/Done prompt)
   if (enteredCode.length > 0) {
     cancelBtn.classList.add('visible');
     // Uses maxDigits variable
@@ -88,6 +107,15 @@ function renderDots() {
   } else {
     cancelBtn.classList.remove('visible');
     cancelBtn.textContent = 'Cancel';
+  }
+
+  // 2. Logic for the NEW FOOTER button (Always shows "Cancel" or "Delete")
+  if (cancelFooterBtn) {
+    if (enteredCode.length > 0) {
+        cancelFooterBtn.textContent = "Delete";
+    } else {
+        cancelFooterBtn.textContent = "Cancel";
+    }
   }
 }
 
