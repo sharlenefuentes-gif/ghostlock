@@ -39,7 +39,7 @@ html, body {
   height: 100%; 
   background-color: #222;
   background-size: cover;
-  background-position: center;
+  background-position: center; 
   z-index: 1;
 }
 
@@ -63,7 +63,8 @@ html, body {
   height: 100%; 
   background-color: #000;
   background-size: cover;
-  background-position: center;
+  /* FIX: Anchor background image to the bottom to prevent bottom cropping */
+  background-position: center bottom; 
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -91,7 +92,7 @@ html, body {
   justify-content: flex-end; 
   width: 100%;
   align-items: center;
-  /* Retained high margin to ensure keypad is positioned up */
+  /* High margin to ensure keypad is positioned up */
   margin-bottom: 100px; 
 }
 
@@ -174,7 +175,6 @@ html, body {
 /* --- NEW LOCK FOOTER BANNER STYLE (Seamless and Plain Text) --- */
 .lock-footer-banner {
   position: absolute;
-  /* FIX: Raise the banner position by 30px from the bottom edge */
   bottom: 30px; 
   left: 0;
   width: 100%;
@@ -183,7 +183,6 @@ html, body {
   align-items: center;
   justify-content: space-between; 
   
-  /* Retained transparency fixes */
   background-color: transparent; 
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
