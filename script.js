@@ -15,7 +15,7 @@ const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');
 const cancelBtn = document.getElementById('cancelBtn'); // Near-dot button
 
-// NEW: Footer buttons (MUST be defined for the new HTML structure)
+// NEW: Footer buttons
 const emergencyBtn = document.getElementById('emergencyBtn');
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 
@@ -57,7 +57,7 @@ function initKeypad() {
 
 // Ignore click on near-dot button if you want only the footer button to work
 cancelBtn.addEventListener('click', () => {
-  enteredCode = ""; // Still resets input, but button is visually suppressed/ignored in iOS design
+  enteredCode = ""; 
   renderDots();
 });
 
@@ -75,7 +75,6 @@ if (emergencyBtn) {
       alert("Emergency dialer functionality would go here.");
     });
 }
-
 
 // --- CORE LOGIC ---
 function handleInput(digit) {
