@@ -7,13 +7,13 @@ let enteredCode = "";
 let referenceNumber = 4050; // Default
 let isUnlocked = false;
 
-// --- DOM ELEMENTS (UPDATED) ---
+// --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
 const homescreen = document.getElementById('homescreen');
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');
-const cancelBtn = document.getElementById('cancelBtn'); // This is the near-dot button
+const cancelBtn = document.getElementById('cancelBtn'); // Near-dot button
 
 // NEW: Footer buttons
 const emergencyBtn = document.getElementById('emergencyBtn');
@@ -55,16 +55,17 @@ function initKeypad() {
   });
 }
 
-// Cancel Button Logic (Resets input) - KEPT FOR NEAR-DOT CANCEL/DONE
+// Ignore click on near-dot button if you want only the footer button to work
 cancelBtn.addEventListener('click', () => {
-  enteredCode = "";
+  enteredCode = ""; // Still resets input, but button is visually suppressed/ignored in iOS design
   renderDots();
 });
 
-// NEW: Footer Cancel Button Logic
+// NEW: Footer Cancel/Delete Button Logic (This is the primary Cancel/Delete button)
 if (cancelFooterBtn) {
     cancelFooterBtn.addEventListener('click', () => {
-      enteredCode = "";
+      // Logic for Delete (if code is present) or Cancel (if no code)
+      enteredCode = ""; // Always clear the input on tap
       renderDots();
     });
 }
@@ -99,18 +100,11 @@ function renderDots() {
     dotsContainer.appendChild(dot);
   }
   
-  // 1. Logic for the NEAR-DOT cancel button (Used for Delete/Done prompt)
-  // This is the button that you see above the keypad.
-  if (enteredCode.length > 0) {
-    cancelBtn.classList.add('visible');
-    cancelBtn.textContent = enteredCode.length === maxDigits ? 'Done' : 'Delete'; 
-  } else {
-    // If you want to hide this button completely when no digits are entered:
-    // cancelBtn.classList.remove('visible'); 
-    cancelBtn.textContent = 'Cancel';
-  }
+  // 1. Logic for the NEAR-DOT cancel button (Ensure it is visually hidden/ignored)
+  cancelBtn.classList.remove('visible'); 
+  cancelBtn.textContent = 'Cancel';
 
-  // 2. Logic for the NEW FOOTER button (Always shows "Cancel" or "Delete")
+  // 2. Logic for the NEW FOOTER button (This handles the "Delete" / "Cancel" text)
   if (cancelFooterBtn) {
     if (enteredCode.length > 0) {
         cancelFooterBtn.textContent = "Delete";
