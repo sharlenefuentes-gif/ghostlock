@@ -91,7 +91,7 @@ html, body {
   justify-content: flex-end; 
   width: 100%;
   align-items: center;
-  /* FIX: Increased margin to push keypad layout higher */
+  /* Retained high margin to ensure keypad is positioned up */
   margin-bottom: 100px; 
 }
 
@@ -171,10 +171,11 @@ html, body {
 }
 .cancel-btn.visible { opacity: 1; }
 
-/* --- NEW LOCK FOOTER BANNER STYLE (Now Seamless and Fully Transparent) --- */
+/* --- NEW LOCK FOOTER BANNER STYLE (Seamless and Plain Text) --- */
 .lock-footer-banner {
   position: absolute;
-  bottom: 0; 
+  /* FIX: Raise the banner position by 30px from the bottom edge */
+  bottom: 30px; 
   left: 0;
   width: 100%;
   height: 70px; 
@@ -182,7 +183,7 @@ html, body {
   align-items: center;
   justify-content: space-between; 
   
-  /* FIX: Set background and backdrop filter to transparent/none for seamless look */
+  /* Retained transparency fixes */
   background-color: transparent; 
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -205,7 +206,6 @@ html, body {
   color: var(--text-color);
   padding: 0 10px; 
   
-  /* Retain plain text appearance on click */
   transition: none; 
 }
 
