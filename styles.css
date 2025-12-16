@@ -36,7 +36,7 @@ html, body {
   position: absolute;
   top: 0; left: 0; 
   width: 100%; 
-  height: 100%; 
+  height: 100%;
   background-color: #222;
   background-size: cover;
   background-position: center;
@@ -60,7 +60,7 @@ html, body {
   position: absolute;
   top: 0; left: 0; 
   width: 100%; 
-  height: 100%; 
+  height: 100%;
   background-color: #000;
   background-size: cover;
   background-position: center;
@@ -171,16 +171,16 @@ html, body {
 }
 .cancel-btn.visible { opacity: 1; }
 
-/* --- NEW LOCK FOOTER BANNER STYLE (Replaces lock-footer and icon-circle) --- */
+/* --- NEW LOCK FOOTER BANNER STYLE (Replaces old lock-footer) --- */
 .lock-footer-banner {
   position: absolute;
   bottom: 0; 
   left: 0;
   width: 100%;
-  height: 80px; /* Adjust height as needed */
+  height: 80px; 
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between; /* Use space-between for left/right alignment */
   
   /* Semi-transparent background with blur for the iOS look */
   background-color: rgba(0, 0, 0, 0.25);
@@ -198,17 +198,25 @@ html, body {
 }
 
 .footer-button {
-  flex-grow: 1;
+  width: 50%; /* Make each button take up half the width */
   text-align: center;
   font-size: 18px;
   font-weight: 500;
-  line-height: 80px; /* Vertically center the text */
+  line-height: 80px; 
   height: 100%;
   cursor: pointer;
   color: var(--text-color);
+  padding: 0 20px; /* Add padding for better spacing */
   
-  /* Ensure text doesn't move when pressed */
   transition: background-color 0.1s;
+}
+
+/* Ensure Emergency is left-aligned and Cancel is right-aligned */
+#emergencyBtn {
+    text-align: left;
+}
+#cancelFooterBtn {
+    text-align: right;
 }
 
 .footer-button:active {
