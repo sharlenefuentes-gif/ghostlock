@@ -7,7 +7,7 @@ let enteredCode = "";
 let referenceNumber = 4050; // Default
 let isUnlocked = false;
 
-// --- DOM ELEMENTS ---
+// --- DOM ELEMENTS (UPDATED) ---
 const lockscreen = document.getElementById('lockscreen');
 const homescreen = document.getElementById('homescreen');
 const dotsContainer = document.getElementById('dots');
@@ -24,7 +24,7 @@ const uploadLock = document.getElementById('uploadLock');
 const uploadHome = document.getElementById('uploadHome');
 
 // --- INITIALIZATION ---
-loadSettings(); // MUST load settings before initKeypad/renderDots
+loadSettings(); 
 initKeypad();
 renderDots();
 
@@ -100,12 +100,13 @@ function renderDots() {
   }
   
   // 1. Logic for the NEAR-DOT cancel button (Used for Delete/Done prompt)
+  // This is the button that you see above the keypad.
   if (enteredCode.length > 0) {
     cancelBtn.classList.add('visible');
-    // Uses maxDigits variable
     cancelBtn.textContent = enteredCode.length === maxDigits ? 'Done' : 'Delete'; 
   } else {
-    cancelBtn.classList.remove('visible');
+    // If you want to hide this button completely when no digits are entered:
+    // cancelBtn.classList.remove('visible'); 
     cancelBtn.textContent = 'Cancel';
   }
 
