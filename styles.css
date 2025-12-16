@@ -39,7 +39,8 @@ html, body {
   height: 100%; 
   background-color: #222;
   background-size: cover;
-  background-position: center; 
+  /* FIX: Anchor background image to the bottom for consistency */
+  background-position: center bottom; 
   z-index: 1;
 }
 
@@ -71,6 +72,7 @@ html, body {
   justify-content: flex-end; 
   align-items: center;
   transition: opacity 0.35s ease, transform 0.35s ease;
+  /* Removed padding-bottom here as it's handled by the footer banner */
   padding-bottom: 0; 
 }
 
@@ -92,7 +94,7 @@ html, body {
   justify-content: flex-end; 
   width: 100%;
   align-items: center;
-  /* High margin to ensure keypad is positioned up */
+  /* High margin to ensure keypad is positioned up and clear of the banner */
   margin-bottom: 100px; 
 }
 
@@ -167,14 +169,23 @@ html, body {
   color: #fff;
   margin-top: 10px;
   cursor: pointer;
+  /* Hidden as per user request, relying on the footer button */
   opacity: 0; 
   transition: opacity 0.2s;
 }
 .cancel-btn.visible { opacity: 1; }
 
+/* --- DELETED OLD LOCK FOOTER STYLES (Cleanup) --- */
+/*
+.lock-footer { ... }
+.icon-circle { ... }
+.icon-circle:active { ... }
+*/
+
 /* --- NEW LOCK FOOTER BANNER STYLE (Seamless and Plain Text) --- */
 .lock-footer-banner {
   position: absolute;
+  /* Raised position */
   bottom: 30px; 
   left: 0;
   width: 100%;
@@ -183,6 +194,7 @@ html, body {
   align-items: center;
   justify-content: space-between; 
   
+  /* Seamless transparency */
   background-color: transparent; 
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -219,8 +231,4 @@ html, body {
 #cancelFooterBtn {
     text-align: right;
     padding-right: 0; 
-}
-
-.footer-separator {
-  display: none;
 }
