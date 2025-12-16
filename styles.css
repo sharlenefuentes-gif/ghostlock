@@ -64,7 +64,7 @@ html, body {
   height: 100%; 
   background-color: #000;
   background-size: cover;
-  /* FIX: Anchor background image to the bottom to prevent bottom cropping */
+  /* CRITICAL FIX: Anchor background image to the bottom to prevent bottom cropping */
   background-position: center bottom; 
   z-index: 10;
   display: flex;
