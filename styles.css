@@ -70,7 +70,7 @@ html, body {
   justify-content: flex-end; 
   align-items: center;
   transition: opacity 0.35s ease, transform 0.35s ease;
-  padding-bottom: env(safe-area-inset-bottom, 20px);
+  /* Removed padding-bottom for the old circular buttons */
 }
 
 .lockscreen.unlocked {
@@ -91,7 +91,8 @@ html, body {
   justify-content: flex-end; 
   width: 100%;
   align-items: center;
-  margin-bottom: 60px; 
+  /* Reduced bottom margin to account for the new banner height */
+  margin-bottom: 20px; 
 }
 
 .passcode-panel {
@@ -170,30 +171,53 @@ html, body {
 }
 .cancel-btn.visible { opacity: 1; }
 
-/* Bottom Action Buttons (Flashlight / Camera) */
-.lock-footer {
-  display: flex;
-  justify-content: space-between;
-  width: 86%;
+/* --- NEW LOCK FOOTER BANNER STYLE (Replaces lock-footer and icon-circle) --- */
+.lock-footer-banner {
   position: absolute;
-  bottom: 30px;
-}
-
-.icon-circle {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: var(--icon-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  bottom: 0; 
+  left: 0;
+  width: 100%;
+  height: 80px; /* Adjust height as needed */
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  transition: transform 0.1s, background 0.1s;
+  justify-content: space-around;
+  
+  /* Semi-transparent background with blur for the iOS look */
+  background-color: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+
+  /* Rounded corners only on the bottom, matching the image */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 10px; 
+  border-bottom-right-radius: 10px;
+
+  /* Padding at the bottom for the safe area */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-.icon-circle:active {
-  transform: scale(0.95);
-  background: rgba(255,255,255,0.2);
+.footer-button {
+  flex-grow: 1;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 80px; /* Vertically center the text */
+  height: 100%;
+  cursor: pointer;
+  color: var(--text-color);
+  
+  /* Ensure text doesn't move when pressed */
+  transition: background-color 0.1s;
+}
+
+.footer-button:active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Optional: Vertical separator line */
+.footer-separator {
+  width: 1px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.3);
 }
