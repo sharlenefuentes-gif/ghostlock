@@ -15,7 +15,7 @@ const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');
 const cancelBtn = document.getElementById('cancelBtn'); // Near-dot button
 
-// NEW: Footer buttons
+// NEW: Footer buttons (MUST be defined for the new HTML structure)
 const emergencyBtn = document.getElementById('emergencyBtn');
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 
@@ -64,8 +64,8 @@ cancelBtn.addEventListener('click', () => {
 // NEW: Footer Cancel/Delete Button Logic (This is the primary Cancel/Delete button)
 if (cancelFooterBtn) {
     cancelFooterBtn.addEventListener('click', () => {
-      // Logic for Delete (if code is present) or Cancel (if no code)
-      enteredCode = ""; // Always clear the input on tap
+      // Clear the input on tap to perform "Delete/Cancel" action
+      enteredCode = ""; 
       renderDots();
     });
 }
@@ -75,6 +75,7 @@ if (emergencyBtn) {
       alert("Emergency dialer functionality would go here.");
     });
 }
+
 
 // --- CORE LOGIC ---
 function handleInput(digit) {
