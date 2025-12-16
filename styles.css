@@ -39,7 +39,7 @@ html, body {
   height: 100%; 
   background-color: #222;
   background-size: cover;
-  /* FIX: Anchor background image to the bottom for consistency */
+  /* Anchor to bottom for consistency */
   background-position: center bottom; 
   z-index: 1;
 }
@@ -72,7 +72,6 @@ html, body {
   justify-content: flex-end; 
   align-items: center;
   transition: opacity 0.35s ease, transform 0.35s ease;
-  /* Removed padding-bottom here as it's handled by the footer banner */
   padding-bottom: 0; 
 }
 
@@ -169,18 +168,10 @@ html, body {
   color: #fff;
   margin-top: 10px;
   cursor: pointer;
-  /* Hidden as per user request, relying on the footer button */
   opacity: 0; 
   transition: opacity 0.2s;
 }
 .cancel-btn.visible { opacity: 1; }
-
-/* --- DELETED OLD LOCK FOOTER STYLES (Cleanup) --- */
-/*
-.lock-footer { ... }
-.icon-circle { ... }
-.icon-circle:active { ... }
-*/
 
 /* --- NEW LOCK FOOTER BANNER STYLE (Seamless and Plain Text) --- */
 .lock-footer-banner {
