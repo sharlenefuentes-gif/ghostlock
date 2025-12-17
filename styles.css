@@ -4,11 +4,12 @@
   --text-color: #fff;
   
   /* LIQUID GLASS PALETTE */
-  --glass-surface: rgba(255, 255, 255, 0.12); /* Base layer */
-  --glass-shine: rgba(255, 255, 255, 0.2);   /* The highlight */
+  --glass-surface: rgba(255, 255, 255, 0.12);
+  --glass-shine: rgba(255, 255, 255, 0.2);
   --glass-border: rgba(255, 255, 255, 0.3);
   --glass-blur: blur(25px);
   
+  --accent-green: #34C759; /* iOS Green */
   --accent-blue: #0A84FF;
   --text-secondary: rgba(235, 235, 245, 0.6);
 }
@@ -16,11 +17,9 @@
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  /* STRICT FULLSCREEN LOCK */
   position: fixed; 
   top: 0; left: 0; right: 0; bottom: 0;
   width: 100%; height: 100%;
-  
   margin: 0; padding: 0;
   background: var(--bg-color);
   color: var(--text-color);
@@ -31,64 +30,57 @@ html, body {
 
 .app { width: 100%; height: 100%; position: relative; overflow: hidden; }
 
-/* --- MAINS --- */
+/* --- BACKGROUNDS (Strict Edge-to-Edge Fix) --- */
 main {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   
-  /* FLUSH FILL FIX: 
-     1. Stretch to 100% width/height.
-     2. Anchor to BOTTOM so it never looks "pushed up".
-  */
+  /* FORCE STRETCH: Ensures exact screenshot mapping */
   background-size: 100% 100% !important; 
-  background-position: center bottom !important; 
+  background-position: center center !important; 
   background-repeat: no-repeat;
   
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-  will-change: opacity, transform; /* Performance boost */
+  will-change: opacity, transform;
 }
 
 .homescreen { z-index: 1; display: block; }
-
-/* --- RESULTS --- */
-.magic-result {
-  position: absolute; 
-  bottom: 20px; right: 30px;
-  font-size: 20px; font-weight: 500;
-  color: rgba(255, 255, 255, 0.4); 
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
-  pointer-events: none;
-}
-
-.history-result {
-  position: absolute; 
-  bottom: 20px; left: 30px;
-  display: flex; flex-direction: column-reverse; 
-  align-items: flex-start; 
-  gap: 2px;
-  font-size: 16px; font-weight: 600;
-  color: rgba(255, 255, 255, 0.5); 
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
-  pointer-events: none;
-  font-variant-numeric: tabular-nums;
-  text-transform: capitalize;
-}
-
 .lockscreen {
   z-index: 2; background-color: #000;
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
 .lockscreen.unlocked { transform: translateY(-100%); pointer-events: none; }
 
+/* --- NOTES REVEAL --- */
+.notes-content {
+  position: absolute;
+  top: 140px; /* Approximate start of text in Notes app */
+  left: 20px;
+  right: 20px;
+  font-family: var(--font-stack);
+  font-size: 18px;
+  line-height: 1.4;
+  color: rgba(255,255,255,0.9); /* Default to white text for dark mode notes */
+  white-space: pre-wrap;
+  display: none; /* Hidden by default */
+}
+.notes-content.active { display: block; }
+
+/* --- STANDARD MAGIC RESULT --- */
+.magic-result {
+  position: absolute; bottom: 20px; right: 30px;
+  font-size: 20px; font-weight: 500;
+  color: rgba(255, 255, 255, 0.4); 
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
+  pointer-events: none;
+}
+
+/* --- LOCKSCREEN LAYOUT --- */
 .content-wrapper {
   display: flex; flex-direction: column; align-items: center; 
-  justify-content: center; 
-  height: 100%; width: 100%;
-  
-  /* KEYPAD POSITION: Nudged lower (65px) for perfect thumb reach */
+  justify-content: center; height: 100%; width: 100%;
   padding-bottom: 65px; 
 }
 
-/* --- PASSCODE PANEL --- */
 .passcode-panel {
   display: flex; flex-direction: column; align-items: center;
   width: 100%; max-width: 340px;
@@ -114,7 +106,7 @@ main {
 }
 .dot.filled { background: #fff; }
 
-/* --- LIQUID GLASS KEYPAD RESTORED --- */
+/* --- LIQUID GLASS KEYPAD --- */
 .keypad {
   display: grid; grid-template-columns: repeat(3, 1fr);
   column-gap: 32px; row-gap: 18px;
@@ -122,29 +114,15 @@ main {
 
 .key {
   width: 78px; height: 78px; border-radius: 50%;
-  
-  /* BASE COLOR: Ensures it's never black while loading */
   background-color: var(--glass-surface);
-  
-  /* THE LIQUID SHINE: Restored gradient */
   background-image: radial-gradient(ellipse at center, var(--glass-shine) 0%, transparent 70%);
-  
-  /* BLUR & BORDER */
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-  box-shadow: 
-    inset 0 1px 0 0 var(--glass-border), 
-    inset 0 -1px 0 0 rgba(255,255,255,0.05),
-    0 4px 10px rgba(0,0,0,0.15);
-  
-  /* RENDER FIX: Forces GPU to paint this element immediately */
+  box-shadow: inset 0 1px 0 0 var(--glass-border), inset 0 -1px 0 0 rgba(255,255,255,0.05), 0 4px 10px rgba(0,0,0,0.15);
   transform: translateZ(0); 
-
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; position: relative;
-  touch-action: manipulation;
   transition: background-color 0.15s, transform 0.1s;
 }
-
 .key:active, .key.active {
   background-color: rgba(255, 255, 255, 0.4);
   transform: scale(0.92) translateZ(0);
@@ -152,28 +130,64 @@ main {
 
 .key-digit { font-size: 34px; font-weight: 400; line-height: 1; margin-bottom: 2px; pointer-events: none; }
 .key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; pointer-events: none; }
-
 .key.empty { visibility: hidden; pointer-events: none; }
+
+/* --- EMERGENCY DIALER SCREEN --- */
+.dialer-screen {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: #000; z-index: 5;
+  display: flex; flex-direction: column; 
+  transform: translateY(100%); transition: transform 0.3s ease-out;
+}
+.dialer-screen.active { transform: translateY(0); }
+
+.dialer-display {
+  flex: 1; display: flex; align-items: flex-end; justify-content: center;
+  font-size: 38px; font-weight: 400; padding-bottom: 40px;
+  color: #fff; letter-spacing: 1px;
+}
+
+.dialer-pad-wrapper {
+  display: flex; flex-direction: column; align-items: center;
+  padding-bottom: 20px;
+}
+
+.call-btn {
+  width: 78px; height: 78px; border-radius: 50%;
+  background-color: var(--accent-green);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 20px;
+  box-shadow: 0 4px 15px rgba(52, 199, 89, 0.4);
+}
+.call-icon { width: 32px; height: 32px; fill: white; }
+
+.dialer-tabs {
+  height: 80px; width: 100%;
+  display: flex; justify-content: space-around; align-items: center;
+  background: rgba(20, 20, 20, 0.95);
+  padding-bottom: 20px;
+}
+.tab-item {
+  display: flex; flex-direction: column; align-items: center;
+  color: #777; font-size: 10px; font-weight: 500; gap: 4px;
+}
+.tab-item.selected { color: var(--accent-blue); }
+.tab-icon { font-size: 22px; }
 
 /* --- FOOTER --- */
 .lock-footer-banner {
   position: absolute; bottom: 0; left: 0; width: 100%;
-  padding: 0 40px;
-  /* Safe area padding */
-  padding-bottom: max(35px, env(safe-area-inset-bottom));
+  padding: 0 40px; padding-bottom: max(35px, env(safe-area-inset-bottom));
   height: 100px;
   display: flex; justify-content: space-between; align-items: flex-end;
   pointer-events: none;
 }
-.footer-button { 
-  font-size: 16px; font-weight: 600; cursor: pointer; color: #fff; padding: 10px;
-  pointer-events: auto;
-}
+.footer-button { font-size: 16px; font-weight: 600; cursor: pointer; color: #fff; padding: 10px; pointer-events: auto; }
 
 /* --- SETTINGS --- */
 .settings-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
   z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
   display: flex; align-items: flex-end; justify-content: center;
 }
@@ -189,21 +203,20 @@ main {
 .sheet-title { font-size: 20px; font-weight: 700; }
 .tab-group { display: flex; background: rgba(118, 118, 128, 0.24); padding: 2px; border-radius: 9px; margin-bottom: 20px; }
 .tab-btn { flex: 1; background: transparent; border: none; padding: 6px; color: #fff; font-size: 13px; font-weight: 500; border-radius: 7px; }
-.tab-btn.active { background: #636366; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
+.tab-btn.active { background: #636366; }
 .menu-section { display: none; }
-.menu-section.active { display: block; animation: fadeIn 0.2s; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.menu-section.active { display: block; }
 .list-group { background: rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; margin-bottom: 15px; }
 .list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .list-item:last-child { border-bottom: none; }
-.label { font-size: 15px; font-weight: 500; }
-.value { font-size: 15px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; }
-.stepper-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #fff; font-size: 18px; line-height: 1; }
-.clean-input { background: transparent; border: none; color: var(--accent-blue); font-size: 16px; font-weight: 600; text-align: right; width: 80px; }
+.clean-input { background: transparent; border: none; color: var(--accent-blue); font-size: 16px; font-weight: 600; text-align: right; width: 120px; }
 .clean-input:focus { outline: none; border-bottom: 1px solid var(--accent-blue); }
-.guide-text { font-size: 13px; color: var(--text-secondary); padding: 8px 16px; line-height: 1.4; }
-.guide-row { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; line-height: 1.4; }
-.guide-row strong { color: #fff; display: block; margin-bottom: 2px; }
-.guide-row span { color: var(--text-secondary); }
 .close-action { width: 100%; background: #303032; color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 600; margin-top: 10px; }
-.credits-sub { text-align: center; font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 15px; }
+
+/* Toggle Switch */
+.toggle-switch { position: relative; width: 50px; height: 30px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a3a3c; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--accent-green); }
+input:checked + .slider:before { transform: translateX(20px); }
