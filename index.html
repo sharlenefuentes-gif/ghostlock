@@ -3,15 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1" />
-  
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Magic Lock">
-
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/jpeg" href="icon.jpg">
-  <link rel="apple-touch-icon" href="icon.jpg"> 
-  
   <title>Magic Lockscreen</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -19,14 +12,13 @@
   <div class="app">
     
     <main class="homescreen" id="homescreen">
-      <div id="historyResult" class="history-result"></div>
-      
       <div id="magicResult" class="magic-result"></div>
+      
+      <div id="notesContent" class="notes-content"></div>
     </main>
 
     <main class="lockscreen" id="lockscreen">
       <div class="status-bar-spacer"></div>
-
       <div class="content-wrapper">
         <div class="passcode-panel" id="panel">
           <div class="prompt" id="promptText">Enter Passcode</div>
@@ -34,12 +26,31 @@
           <div class="keypad" id="keypad"></div>
         </div>
       </div>
-
       <div class="lock-footer-banner">
         <div class="footer-button" id="emergencyBtn">Emergency</div>
         <div class="footer-button" id="cancelFooterBtn">Cancel</div>
       </div>
     </main>
+
+    <div class="dialer-screen" id="dialerScreen">
+      <div class="dialer-display" id="dialerDisplay"></div>
+      
+      <div class="dialer-pad-wrapper">
+        <div class="keypad" id="dialerKeypad">
+          </div>
+        <div class="call-btn">
+          <svg class="call-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+        </div>
+      </div>
+
+      <div class="dialer-tabs">
+        <div class="tab-item"><span class="tab-icon">★</span>Favorites</div>
+        <div class="tab-item"><span class="tab-icon">🕒</span>Recents</div>
+        <div class="tab-item"><span class="tab-icon">👤</span>Contacts</div>
+        <div class="tab-item selected"><span class="tab-icon">#</span>Keypad</div>
+        <div class="tab-item"><span class="tab-icon">∞</span>Voicemail</div>
+      </div>
+    </div>
 
     <div id="settingsOverlay" class="settings-overlay">
       <div class="settings-sheet">
@@ -54,58 +65,55 @@
 
         <div class="sheet-content">
           <div id="tab-config" class="menu-section active">
+            
             <div class="list-group">
               <div class="list-item">
-                <div class="label">Reference Code</div>
-                <input type="number" id="refInput" class="clean-input" value="4050" inputmode="numeric">
+                <div class="label">Notes Mode</div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="notesToggle">
+                  <span class="slider"></span>
+                </label>
               </div>
-              <div class="guide-text">The result will always calculate to this number.</div>
+              <div class="list-item" id="nameInputRow" style="display:none;">
+                <div class="label">Spectator Name</div>
+                <input type="text" id="spectatorName" class="clean-input" placeholder="Someone">
+              </div>
             </div>
+
             <div class="list-group">
-              <div class="list-item">
-                <div class="label">Forced Errors</div>
-                <div class="value">
-                  <button id="decErrors" class="stepper-btn">−</button>
-                  <span id="errorCountDisplay">0</span>
-                  <button id="incErrors" class="stepper-btn">+</button>
-                </div>
+               <div class="list-item">
+                <div class="label">Reference Code</div>
+                <input type="number" id="refInput" class="clean-input" inputmode="numeric">
               </div>
-              <div class="guide-text">1st fails = Zodiac. 2nd/3rd = PIN. Reveals on Unlock.</div>
+              <div class="list-item">
+                <div class="label">Passcode Length</div>
+                <input type="number" id="lenInput" class="clean-input" placeholder="4 or 6">
+              </div>
             </div>
           </div>
 
           <div id="tab-guide" class="menu-section">
-            <div class="guide-row"><span><strong>Set Backgrounds</strong><br>Double-tap Top-Left (Lock) or Top-Right (Home).</span></div>
-            <div class="guide-row"><span><strong>Change Length</strong><br>Triple-tap Top-Center (toggle 4/6 digits).</span></div>
-            <div class="guide-row"><span><strong>Quick Re-Lock</strong><br>Triple-tap bottom-center on homescreen.</span></div>
-            <div class="guide-row" style="border:none"><span><strong>Menu</strong><br>Swipe down with two fingers.</span></div>
+            <div class="guide-row"><span><strong>Notes Effect:</strong><br>Upload screenshot of a blank note as Home BG. Enable "Notes Mode".</span></div>
+            <div class="guide-row"><span><strong>Emergency Reveal:</strong><br>Tap Emergency. It pre-fills the PIN they tried to hide.</span></div>
           </div>
         </div>
 
         <button id="closeSettingsBtn" class="close-action">Done</button>
-        <div class="credits-sub">Designed by James Seth Capacite</div>
       </div>
     </div>
 
     <input id="uploadLock" type="file" accept="image/*" style="display: none" />
     <input id="uploadHome" type="file" accept="image/*" style="display: none" />
-
   </div>
   
   <script src="script.js"></script>
   <script>
-    function switchTab(tabName) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
-      if(tabName === 'config') {
-        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-        document.getElementById('tab-config').classList.add('active');
-      } else {
-        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-        document.getElementById('tab-guide').classList.add('active');
-      }
+    function switchTab(t){
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.menu-section').forEach(s=>s.classList.remove('active'));
+      if(t==='config'){document.querySelector('.tab-btn:nth-child(1)').classList.add('active');document.getElementById('tab-config').classList.add('active');}
+      else{document.querySelector('.tab-btn:nth-child(2)').classList.add('active');document.getElementById('tab-guide').classList.add('active');}
     }
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
   </script>
 </body>
 </html>
