@@ -3,9 +3,10 @@
   --bg-color: #000;
   --text-color: #fff;
   
-  --glass-surface: rgba(255, 255, 255, 0.08);
-  --glass-border-top: rgba(255, 255, 255, 0.35);
-  --glass-border-bottom: rgba(255, 255, 255, 0.05);
+  /* Increased opacity so keys are never black, even if BG is loading */
+  --glass-surface: rgba(255, 255, 255, 0.25); 
+  --glass-border-top: rgba(255, 255, 255, 0.4);
+  --glass-border-bottom: rgba(255, 255, 255, 0.1);
   --glass-blur: blur(30px);
   --accent-blue: #0A84FF;
   --text-secondary: rgba(235, 235, 245, 0.6);
@@ -14,16 +15,19 @@
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  /* STRICT FULLSCREEN LOCK */
+  /* iOS SAFARI FIX: Forces content to fill the actual screen window */
+  height: 100vh;
+  height: -webkit-fill-available;
+  width: 100vw;
+  
   position: fixed; 
   top: 0; left: 0; right: 0; bottom: 0;
-  width: 100%; height: 100%;
   
   margin: 0; padding: 0;
   background: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font-stack);
-  overflow: hidden; /* No scrolling allowed */
+  overflow: hidden; 
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -33,9 +37,9 @@ html, body {
 main {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   
-  /* CROP FIX: Forces image to fit the container exactly */
-  background-size: 100% 100%; 
-  background-position: center; 
+  /* FORCE FLUSH FILL: Stretches image to exact corners. No crop. */
+  background-size: 100% 100% !important; 
+  background-position: center center !important; 
   background-repeat: no-repeat;
   
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -43,29 +47,22 @@ main {
 
 .homescreen { z-index: 1; display: block; }
 
-/* --- RESULTS (DISCREET) --- */
-/* Bottom Right: Magic Unlock Number */
+/* --- RESULTS --- */
 .magic-result {
   position: absolute; 
-  bottom: 10px; /* Pushed to very bottom edge */
-  right: 20px;  /* Tucked in corner */
+  bottom: 15px; right: 20px;
   font-size: 20px; font-weight: 500;
-  color: rgba(255, 255, 255, 0.35); /* Lower opacity for stealth */
+  color: rgba(255, 255, 255, 0.35); 
   text-shadow: 0 1px 2px rgba(0,0,0,0.8); 
   pointer-events: none;
 }
 
-/* Bottom Left: History Stack (Star Sign) */
 .history-result {
   position: absolute; 
-  bottom: 10px; /* Pushed to very bottom edge */
-  left: 20px;   /* Tucked in corner */
-  
-  display: flex;
-  flex-direction: column-reverse; 
+  bottom: 15px; left: 20px;
+  display: flex; flex-direction: column-reverse; 
   align-items: flex-start; 
   gap: 2px;
-
   font-size: 16px; font-weight: 600;
   color: rgba(255, 255, 255, 0.45); 
   text-shadow: 0 1px 2px rgba(0,0,0,0.8); 
@@ -83,11 +80,10 @@ main {
 .content-wrapper {
   display: flex; flex-direction: column; align-items: center; 
   justify-content: center; 
-  height: 100%;
-  width: 100%;
+  height: 100%; width: 100%;
   
-  /* POSITION: Lowers keypad naturally. Adjust this if still too high. */
-  padding-bottom: 60px; 
+  /* Lifted slightly to keep keys away from emergency buttons */
+  padding-bottom: 70px; 
 }
 
 /* --- PASSCODE PANEL --- */
@@ -124,13 +120,15 @@ main {
 
 .key {
   width: 78px; height: 78px; border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(255,255,255,0.15) 0%, transparent 70%);
-  background-color: var(--glass-surface);
+  
+  /* BLACK KEY FIX: Immediate visible white color */
+  background-color: var(--glass-surface); 
+  border: 1px solid rgba(255,255,255,0.15);
+  
+  /* Blur filter stays as secondary effect */
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-  box-shadow: 
-    inset 0 1px 0 0 var(--glass-border-top),
-    inset 0 -1px 0 0 var(--glass-border-bottom),
-    0 10px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; position: relative;
   touch-action: manipulation; -webkit-user-select: none;
@@ -139,7 +137,7 @@ main {
 
 .key:active, .key.active {
   transform: scale(0.92);
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.45); /* Very visible when pressed */
 }
 
 .key-digit { font-size: 34px; font-weight: 400; line-height: 1; margin-bottom: 2px; pointer-events: none; }
@@ -151,10 +149,8 @@ main {
 .lock-footer-banner {
   position: absolute; bottom: 0; left: 0; width: 100%;
   padding: 0 40px;
-  
-  /* Ensures buttons sit comfortably at bottom but don't touch edge */
+  /* Safe area for iPhone home bar */
   padding-bottom: max(35px, env(safe-area-inset-bottom));
-  
   height: 100px;
   display: flex; justify-content: space-between; align-items: flex-end;
   pointer-events: none;
