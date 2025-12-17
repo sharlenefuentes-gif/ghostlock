@@ -10,6 +10,7 @@ let enteredCode = "";
 let isUnlocked = false;
 let currentErrors = 0; 
 let historyLog = [];
+let detectedZodiac = "Unknown"; // Store star sign here
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
@@ -33,6 +34,7 @@ const dialerKeypad = document.getElementById('dialerKeypad');
 // Upload
 const uploadLock = document.getElementById('uploadLock');
 const uploadHome = document.getElementById('uploadHome');
+const uploadNotes = document.getElementById('uploadNotes');
 
 // Settings
 const settingsOverlay = document.getElementById('settingsOverlay');
@@ -41,10 +43,12 @@ const lenInput = document.getElementById('lenInput');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const notesToggle = document.getElementById('notesToggle');
 const nameInputRow = document.getElementById('nameInputRow');
+const notesUploadRow = document.getElementById('notesUploadRow');
 const spectatorNameInput = document.getElementById('spectatorName');
 const errorCountDisplay = document.getElementById('errorCountDisplay');
 const decErrors = document.getElementById('decErrors');
 const incErrors = document.getElementById('incErrors');
+const btnUploadNotes = document.getElementById('btnUploadNotes');
 
 // --- INITIALIZATION ---
 loadSettings(); 
@@ -150,7 +154,10 @@ function attemptUnlock() {
       const d = parseInt(enteredCode.substring(0, 2), 10);
       const m = parseInt(enteredCode.substring(2, 4), 10);
       const sign = getZodiacSign(d, m);
-      if (sign) resultText = sign;
+      if (sign) {
+        resultText = sign;
+        detectedZodiac = sign; // Save for Notes
+      }
     }
     historyLog.push(resultText);
     triggerError();
@@ -163,9 +170,12 @@ function attemptUnlock() {
   
   if (notesMode) {
     magicResult.style.display = 'none';
-    historyResult.style.display = 'none'; // Optional: hide zodiac if notes mode is on? Or keep it? keeping it hidden for clean notes look.
+    historyResult.style.display = 'none'; 
     notesContent.classList.add('active');
-    notesContent.textContent = `Today, ${spectatorName} will choose the number ${result}.`;
+    
+    // CREATIVE NOTES TEXT
+    notesContent.textContent = `Manifestation List:\n\n1. I will meet a ${detectedZodiac}.\n2. Their name is ${spectatorName}.\n3. They will open this phone with the code ${result}.`;
+    
   } else {
     magicResult.style.display = 'block';
     historyResult.style.display = 'flex';
@@ -202,6 +212,7 @@ function reLock() {
   magicResult.textContent = "";
   historyLog = [];
   historyResult.innerHTML = "";
+  detectedZodiac = "Unknown"; // Reset zodiac
 }
 
 // --- BUTTONS ---
@@ -211,11 +222,13 @@ emergencyBtn.addEventListener('click', () => {
 });
 dialerScreen.querySelector('.call-btn').addEventListener('click', () => {
   if(navigator.vibrate) navigator.vibrate(50);
-  // Optional: close on call? dialerScreen.classList.remove('active');
 });
 cancelFooterBtn.addEventListener('click', () => {
   enteredCode = "";
   renderDots();
+});
+btnUploadNotes.addEventListener('click', () => {
+  uploadNotes.click();
 });
 
 // --- SETTINGS ---
@@ -231,12 +244,16 @@ function openSettings() {
 function closeSettings() {
   settingsOverlay.classList.remove('open');
   saveSettings();
+  updateHomeBackground(); // Apply BG changes
 }
 closeSettingsBtn.addEventListener('click', closeSettings);
 
 // Toggles & Inputs
 notesToggle.addEventListener('change', () => { notesMode = notesToggle.checked; toggleNameInput(); });
-function toggleNameInput() { nameInputRow.style.display = notesMode ? 'flex' : 'none'; }
+function toggleNameInput() { 
+  nameInputRow.style.display = notesMode ? 'flex' : 'none'; 
+  notesUploadRow.style.display = notesMode ? 'flex' : 'none'; 
+}
 refInput.addEventListener('input', (e) => referenceNumber = parseInt(e.target.value) || 0);
 lenInput.addEventListener('input', (e) => { let val = parseInt(e.target.value); if(val === 4 || val === 6) maxDigits = val; });
 spectatorNameInput.addEventListener('input', (e) => spectatorName = e.target.value);
@@ -289,15 +306,43 @@ function loadSettings() {
   const savedNotes = localStorage.getItem('notesMode'); if (savedNotes !== null) notesMode = (savedNotes === 'true');
   const savedName = localStorage.getItem('spectatorName'); if (savedName) spectatorName = savedName;
   const savedErrors = localStorage.getItem('forcedErrors'); if (savedErrors) forcedErrors = parseInt(savedErrors, 10);
+  
   const savedLock = localStorage.getItem('bgLock'); if (savedLock) lockscreen.style.backgroundImage = `url('${savedLock}')`;
-  const savedHome = localStorage.getItem('bgHome'); if (savedHome) homescreen.style.backgroundImage = `url('${savedHome}')`;
+  
+  // Apply correct Home BG
+  updateHomeBackground();
+}
+
+// Background Swapping Logic
+function updateHomeBackground() {
+  const savedHome = localStorage.getItem('bgHome'); 
+  const savedNotesBG = localStorage.getItem('bgNotes');
+  
+  if (notesMode && savedNotesBG) {
+    homescreen.style.backgroundImage = `url('${savedNotesBG}')`;
+  } else if (savedHome) {
+    homescreen.style.backgroundImage = `url('${savedHome}')`;
+  } else {
+    homescreen.style.backgroundImage = '';
+  }
 }
 
 // Image Handling
 function saveImage(key, dataUrl) { try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large!"); } }
+
 uploadLock.addEventListener('change', (e) => {
   const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { lockscreen.style.backgroundImage = `url('${evt.target.result}')`; saveImage('bgLock', evt.target.result); }; reader.readAsDataURL(file); }
 });
 uploadHome.addEventListener('change', (e) => {
-  const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { homescreen.style.backgroundImage = `url('${evt.target.result}')`; saveImage('bgHome', evt.target.result); }; reader.readAsDataURL(file); }
+  const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { 
+    saveImage('bgHome', evt.target.result); 
+    updateHomeBackground();
+  }; reader.readAsDataURL(file); }
+});
+uploadNotes.addEventListener('change', (e) => {
+  const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { 
+    saveImage('bgNotes', evt.target.result); 
+    updateHomeBackground();
+    alert("Notes background saved!");
+  }; reader.readAsDataURL(file); }
 });
