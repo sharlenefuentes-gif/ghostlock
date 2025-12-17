@@ -62,7 +62,24 @@ function renderDots() {
   ).join('');
 }
 
-// --- LOGIC ---
+// --- ZODIAC LOGIC ---
+function getZodiacSign(day, month) {
+  // Simple check for invalid dates
+  if (month < 1 || month > 12 || day < 1 || day > 31) return "";
+
+  const days = [20, 19, 21, 20, 21, 22, 23, 23, 23, 23, 22, 22];
+  const signs = ["Capricorn", "Aquarius", "Pisces", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius"];
+  
+  let sign = "";
+  if (month == 1 && day <= 19) sign = "Capricorn";
+  else if (month == 12 && day >= 22) sign = "Capricorn";
+  else if (day < days[month - 1]) sign = signs[month - 2];
+  else sign = signs[month - 1];
+
+  return sign;
+}
+
+// --- UNLOCK LOGIC ---
 function handleTap(digit) {
   if (isUnlocked) return;
   if (enteredCode.length < maxDigits) {
@@ -76,17 +93,38 @@ function handleTap(digit) {
 }
 
 function attemptUnlock() {
+  // --- ERROR PHASE (Forced Errors) ---
   if (currentErrors < forcedErrors) {
     currentErrors++;
+    
+    // 1st Error: Try to read as Date (DDMMYY) and show Zodiac
+    if (currentErrors === 1) {
+      if (enteredCode.length === 6) {
+        const d = parseInt(enteredCode.substring(0, 2));
+        const m = parseInt(enteredCode.substring(2, 4));
+        const sign = getZodiacSign(d, m);
+        historyResult.textContent = sign ? sign : enteredCode; 
+      } else {
+        historyResult.textContent = enteredCode;
+      }
+    } 
+    // 2nd Error (or more): Show the raw numbers
+    else {
+      historyResult.textContent = enteredCode;
+    }
+
     triggerError();
     return;
   }
 
+  // --- UNLOCK PHASE ---
   const inputNum = parseInt(enteredCode, 10);
   const result = inputNum - referenceNumber;
 
   magicResult.textContent = result;
-  historyResult.textContent = `${inputNum} - ${referenceNumber} =`;
+  
+  // Clear the bottom-left history or set it to something specific if you want
+  // historyResult.textContent = ""; 
   
   unlock();
 }
@@ -113,6 +151,7 @@ function unlock() {
 function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
+  // Clear displays on lock
   magicResult.textContent = "";
   historyResult.textContent = "";
 }
