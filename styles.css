@@ -77,11 +77,16 @@ main {
 /* 3. Notes Content (Overlay) */
 .notes-content {
   position: absolute;
-  top: 140px; /* Adjust based on where "text" starts in your screenshot */
+  top: 150px; /* Approximate start of text in Notes app */
   left: 20px; right: 20px;
-  font-size: 18px; line-height: 1.4;
+  
+  /* Notes Styling */
+  font-size: 20px; 
+  font-weight: 600;
+  line-height: 1.5;
   color: rgba(255,255,255,0.95); 
-  white-space: pre-wrap;
+  white-space: pre-wrap; /* Preserves line breaks */
+  
   display: none; 
   text-shadow: 0 1px 1px rgba(0,0,0,0.5);
 }
@@ -253,3 +258,4 @@ main {
 input:checked + .slider { background-color: var(--accent-green); }
 input:checked + .slider:before { transform: translateX(20px); }
 .credits-sub { text-align: center; font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 15px; }
+.upload-btn { background: var(--accent-blue); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; }
