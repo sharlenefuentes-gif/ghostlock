@@ -30,19 +30,22 @@ html, body {
 /* --- THE WALLPAPER FIX --- */
 #bgContainer {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  z-index: -1; /* Behind everything */
+  top: 0; left: 0; right: 0; bottom: 0;
+  height: 100dvh; 
+  z-index: -1; 
   pointer-events: none;
+  overflow: hidden;
 }
+
 #wallpaperImg {
   width: 100%; height: 100%;
-  object-fit: fill; /* FORCE fit to corners, no cropping */
+  object-fit: fill; 
   display: block;
 }
 
 .app { width: 100%; height: 100%; position: relative; overflow: hidden; }
 
-/* Mains are now transparent containers */
+/* Mains are transparent wrappers */
 main {
   position: absolute; 
   top: 0; left: 0; right: 0; bottom: 0;
@@ -72,34 +75,34 @@ main {
 /* --- NOTES STYLING --- */
 .notes-content {
   position: absolute;
-  /* Adjust this top value based on where the text starts in your screenshot */
-  top: 140px; 
+  top: 130px; 
   left: 20px; right: 20px;
   
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 19px; 
   font-weight: 400;
   line-height: 1.4;
-  color: rgba(255,255,255,0.95); /* High contrast for dark mode notes */
+  color: rgba(255,255,255,0.95); 
   
   white-space: pre-wrap; 
   display: none; 
   text-shadow: 0 1px 1px rgba(0,0,0,0.3);
 }
 .notes-content.active { display: block; }
-.notes-content strong { font-weight: 700; color: #fff; }
+
+/* The Header/Title Style */
+.note-header {
+  font-size: 28px; 
+  font-weight: 800; 
+  display: block;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+  text-transform: uppercase; /* FORCES ALL CAPS */
+}
 
 /* --- LOCKSCREEN --- */
-.lockscreen { z-index: 2; /* No background color, handled by img */ }
+.lockscreen { z-index: 2; }
 .lockscreen.unlocked { transform: translateY(-100%); pointer-events: none; }
-
-/* If you want the blur on lockscreen over the image */
-.lockscreen::before {
-  content: ""; position: absolute; top:0; left:0; width:100%; height:100%;
-  background: rgba(0,0,0,0.01); /* Slight dim */
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  z-index: -1;
-}
 
 .content-wrapper {
   display: flex; flex-direction: column; align-items: center; 
@@ -138,7 +141,6 @@ main {
 .key.empty { visibility: hidden; pointer-events: none; }
 
 /* --- EMERGENCY & SETTINGS UI --- */
-/* (Kept mostly same as previous, just ensuring z-indexes are high) */
 .dialer-screen {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   background: #000; z-index: 5; display: flex; flex-direction: column; 
