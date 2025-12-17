@@ -1,5 +1,5 @@
 {
-  "name": "Magic Lock",
+  "name": "GhostLock",
   "short_name": "GhostLock",
   "start_url": "./index.html",
   "display": "standalone",
