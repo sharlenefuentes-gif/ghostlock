@@ -14,6 +14,7 @@
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
+  /* Strict height to prevent URL bar shifting/cropping */
   height: 100dvh; 
   width: 100%;
   margin: 0; padding: 0;
@@ -31,6 +32,7 @@ html, body {
 /* --- MAINS --- */
 main {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  /* Anchor background to BOTTOM to prevent keypad from floating too high or getting cut */
   background-size: cover; 
   background-position: center bottom; 
   background-repeat: no-repeat;
@@ -47,19 +49,20 @@ main {
   text-shadow: 0 1px 2px rgba(0,0,0,0.5); pointer-events: none;
 }
 
-/* Bottom Right: History (Stacks Upwards) */
+/* Bottom Left: History Stack */
+/* Displays: StarSign (Top), then PINs below it */
 .history-result {
   position: absolute; 
-  bottom: 80px; /* Above the Footer/Cancel button area */
-  right: 30px;  /* Align to Right side */
+  bottom: 100px; /* Sits above the footer area */
+  left: 30px;    /* MOVED TO LEFT */
   
   display: flex;
-  flex-direction: column;
-  align-items: flex-end; /* Right align text */
-  gap: 5px;
+  flex-direction: column; /* Stacks Top-to-Bottom */
+  align-items: flex-start; /* Left align */
+  gap: 4px;
 
   font-size: 18px; font-weight: 600;
-  color: rgba(255, 255, 255, 0.6); 
+  color: rgba(255, 255, 255, 0.5); 
   text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
   pointer-events: none;
   font-variant-numeric: tabular-nums;
@@ -76,9 +79,9 @@ main {
 .content-wrapper {
   display: flex; flex-direction: column; align-items: center; 
   
-  /* FIX: Push content DOWN to look like real lockscreen */
+  /* Pushes keypad down, but not too high up */
   justify-content: flex-end; 
-  padding-bottom: 120px; /* Adjusts how high the keypad sits */
+  padding-bottom: 90px; /* Reduced from 120px to sit lower */
   
   height: 100%;
   width: 100%;
