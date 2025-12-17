@@ -7,7 +7,7 @@ let forcedErrors = 0;
 let enteredCode = "";
 let isUnlocked = false;
 let currentErrors = 0; 
-let historyLog = []; // Stores the "Star Sign", "PIN", etc. for stacking
+let historyLog = []; 
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
@@ -15,8 +15,8 @@ const homescreen = document.getElementById('homescreen');
 const panel = document.getElementById('panel'); 
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
-const magicResult = document.getElementById('magicResult');     // Bottom Right (Unlock Result)
-const historyResult = document.getElementById('historyResult'); // Bottom Right (History Stack)
+const magicResult = document.getElementById('magicResult');
+const historyResult = document.getElementById('historyResult'); 
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 
 // Upload Inputs
@@ -75,10 +75,8 @@ function initKeypad() {
     `;
   }).join('');
 
-  // Fast Touch Listeners
   document.querySelectorAll('.key').forEach(key => {
     if (key.classList.contains('empty')) return;
-    
     key.addEventListener('touchstart', (e) => {
       e.preventDefault(); 
       const digit = key.getAttribute('data-digit');
@@ -86,7 +84,6 @@ function initKeypad() {
       key.classList.add('active');
       setTimeout(() => key.classList.remove('active'), 100);
     }, { passive: false });
-
     key.addEventListener('click', (e) => {
       const digit = key.getAttribute('data-digit');
       handleTap(digit);
@@ -101,7 +98,6 @@ function renderDots() {
 }
 
 function updateHistoryDisplay() {
-  // Joins the log array with line breaks to stack them
   historyResult.innerHTML = historyLog.join('<br>');
   historyResult.style.opacity = '1';
 }
@@ -120,23 +116,19 @@ function handleTap(digit) {
 }
 
 function attemptUnlock() {
-  // === ERROR PHASE ===
+  // ERROR PHASE
   if (currentErrors < forcedErrors) {
     currentErrors++;
-    let resultText = enteredCode; // Default to PIN
+    let resultText = enteredCode;
 
     // 1st Error: Reveal Star Sign (DDMMYY)
     if (currentErrors === 1) {
       const d = parseInt(enteredCode.substring(0, 2), 10);
       const m = parseInt(enteredCode.substring(2, 4), 10);
       const sign = getZodiacSign(d, m);
-      
-      // If valid date found, use Sign. Otherwise use raw PIN.
       if (sign) resultText = sign;
     } 
-    // 2nd, 3rd Errors: Keep as PIN (default)
 
-    // STACKING LOGIC: Add to the log array
     historyLog.push(resultText);
     updateHistoryDisplay();
 
@@ -144,22 +136,17 @@ function attemptUnlock() {
     return;
   }
 
-  // === UNLOCK PHASE ===
+  // UNLOCK PHASE
   const inputNum = parseInt(enteredCode, 10);
   const result = inputNum - referenceNumber;
 
   magicResult.textContent = result;
-  
-  // Clear history on unlock? Or keep it? keeping it for now.
-  // historyLog = []; updateHistoryDisplay(); 
-  
   unlock();
 }
 
 function triggerError() {
   panel.classList.add('shake');
   if (navigator.vibrate) navigator.vibrate(200);
-  
   setTimeout(() => {
     panel.classList.remove('shake');
     enteredCode = "";
@@ -173,7 +160,7 @@ function unlock() {
   enteredCode = "";
   renderDots();
   currentErrors = 0; 
-  historyLog = []; // Reset log for next lock
+  historyLog = []; 
   updateHistoryDisplay();
 }
 
@@ -181,7 +168,7 @@ function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
   magicResult.textContent = "";
-  historyLog = []; // Clear log
+  historyLog = [];
   updateHistoryDisplay();
 }
 
@@ -220,7 +207,6 @@ incErrors.addEventListener('click', () => {
 });
 
 // --- GESTURES ---
-// 1. Double Tap (Top Corners)
 let topTapCount = 0;
 let topTapTimer = null;
 document.addEventListener('click', (e) => {
@@ -236,7 +222,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 2. Triple Tap (Top Center)
 let centerTapCount = 0;
 let centerTapTimer = null;
 document.addEventListener('click', (e) => {
@@ -257,7 +242,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 3. Triple Tap Bottom (Re-Lock)
 let bottomTapCount = 0;
 let bottomTapTimer = null;
 document.addEventListener('click', (e) => {
@@ -270,7 +254,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 4. Two-Finger Swipe Down
 let twoFingerStart = null;
 window.addEventListener('touchstart', (e) => {
   if (e.touches.length === 2) {
@@ -298,16 +281,12 @@ function saveSettings() {
 function loadSettings() {
   const savedRef = localStorage.getItem('magicRefNum');
   if (savedRef) referenceNumber = parseInt(savedRef, 10);
-  
   const savedMaxDigits = localStorage.getItem('maxDigits');
   if (savedMaxDigits) maxDigits = parseInt(savedMaxDigits, 10);
-
   const savedErrors = localStorage.getItem('forcedErrors');
   if (savedErrors) forcedErrors = parseInt(savedErrors, 10);
-
   const savedLock = localStorage.getItem('bgLock');
   if (savedLock) lockscreen.style.backgroundImage = `url('${savedLock}')`;
-
   const savedHome = localStorage.getItem('bgHome');
   if (savedHome) homescreen.style.backgroundImage = `url('${savedHome}')`;
 }
