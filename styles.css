@@ -107,19 +107,38 @@ html, body {
   width: 78px; height: 78px; border-radius: 50%;
   
   /* LIQUID GLASS ENHANCEMENT */
-  background: var(--key-bg-base); /* rgba(255, 255, 255, 0.12) */
-  backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: pointer; transition: background 0.15s;
-}
-.key:active { background: var(--key-pressed); }
+ .key {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
 
-.key-digit { font-size: 32px; font-weight: 400; line-height: 1; margin-bottom: 2px; }
-.key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; }
-.key.empty { background: transparent; backdrop-filter: none; border: none; box-shadow: none; }
+  /* Liquid Glass core */
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.25),
+      rgba(255,255,255,0.05)
+    ),
+    rgba(20,20,20,0.35);
+
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+
+  border: 1px solid rgba(255,255,255,0.18);
+
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.35),
+    inset 0 -1px 1px rgba(0,0,0,0.25),
+    0 10px 25px rgba(0,0,0,0.45);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease;
+}
 
 /* --- FOOTER BANNER --- */
 .lock-footer-banner {
