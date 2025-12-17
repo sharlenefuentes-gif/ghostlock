@@ -7,6 +7,7 @@ let forcedErrors = 0;
 let enteredCode = "";
 let isUnlocked = false;
 let currentErrors = 0; 
+let historyLog = []; // Stores the "Star Sign", "PIN", etc. for stacking
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
@@ -15,7 +16,7 @@ const panel = document.getElementById('panel');
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');     // Bottom Right (Unlock Result)
-const historyResult = document.getElementById('historyResult'); // Bottom Left (Star Sign/History)
+const historyResult = document.getElementById('historyResult'); // Bottom Right (History Stack)
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 
 // Upload Inputs
@@ -35,13 +36,9 @@ loadSettings();
 initKeypad();
 renderDots();
 
-// --- ZODIAC LOGIC (Fixed) ---
+// --- ZODIAC LOGIC ---
 function getZodiacSign(day, month) {
-  // Validate
   if (!day || !month || month < 1 || month > 12 || day < 1 || day > 31) return null;
-
-  // Standard Zodiac Cutoffs
-  // Jan 20, Feb 19, Mar 21, Apr 20, May 21, Jun 21, Jul 23, Aug 23, Sep 23, Oct 23, Nov 22, Dec 22
   
   if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return "Aquarius";
   if ((month == 2 && day >= 19) || (month == 3 && day <= 20)) return "Pisces";
@@ -59,7 +56,7 @@ function getZodiacSign(day, month) {
   return null;
 }
 
-// --- KEYPAD GENERATION (Fast Response) ---
+// --- KEYPAD GENERATION ---
 function initKeypad() {
   const keys = [
     { n: '1', s: '' }, { n: '2', s: 'ABC' }, { n: '3', s: 'DEF' },
@@ -70,7 +67,6 @@ function initKeypad() {
 
   keypad.innerHTML = keys.map(k => {
     if (k.n === null) return `<div class="key empty"></div>`;
-    // We remove 'onclick' from HTML and add listeners below for speed
     return `
       <div class="key" data-digit="${k.n}">
         <div class="key-digit">${k.n}</div>
@@ -79,22 +75,18 @@ function initKeypad() {
     `;
   }).join('');
 
-  // Add Fast Touch Listeners
+  // Fast Touch Listeners
   document.querySelectorAll('.key').forEach(key => {
     if (key.classList.contains('empty')) return;
     
-    // Touchstart = Instant reaction
     key.addEventListener('touchstart', (e) => {
-      e.preventDefault(); // Stop mouse emulation
+      e.preventDefault(); 
       const digit = key.getAttribute('data-digit');
       handleTap(digit);
-      
-      // Visual feedback
       key.classList.add('active');
       setTimeout(() => key.classList.remove('active'), 100);
     }, { passive: false });
 
-    // Click fallback for desktop
     key.addEventListener('click', (e) => {
       const digit = key.getAttribute('data-digit');
       handleTap(digit);
@@ -108,6 +100,12 @@ function renderDots() {
   ).join('');
 }
 
+function updateHistoryDisplay() {
+  // Joins the log array with line breaks to stack them
+  historyResult.innerHTML = historyLog.join('<br>');
+  historyResult.style.opacity = '1';
+}
+
 // --- LOGIC ---
 function handleTap(digit) {
   if (isUnlocked) return;
@@ -116,7 +114,6 @@ function handleTap(digit) {
     renderDots();
     
     if (enteredCode.length === maxDigits) {
-      // Small delay to let the last dot fill visually
       setTimeout(attemptUnlock, 50);
     }
   }
@@ -126,7 +123,7 @@ function attemptUnlock() {
   // === ERROR PHASE ===
   if (currentErrors < forcedErrors) {
     currentErrors++;
-    let revelationText = enteredCode; 
+    let resultText = enteredCode; // Default to PIN
 
     // 1st Error: Reveal Star Sign (DDMMYY)
     if (currentErrors === 1) {
@@ -134,13 +131,14 @@ function attemptUnlock() {
       const m = parseInt(enteredCode.substring(2, 4), 10);
       const sign = getZodiacSign(d, m);
       
-      if (sign) revelationText = sign;
+      // If valid date found, use Sign. Otherwise use raw PIN.
+      if (sign) resultText = sign;
     } 
-    // 2nd/3rd Error: Show PIN (Default)
+    // 2nd, 3rd Errors: Keep as PIN (default)
 
-    // DISPLAY: Bottom Left
-    historyResult.textContent = revelationText;
-    historyResult.style.opacity = '1';
+    // STACKING LOGIC: Add to the log array
+    historyLog.push(resultText);
+    updateHistoryDisplay();
 
     triggerError();
     return;
@@ -150,8 +148,10 @@ function attemptUnlock() {
   const inputNum = parseInt(enteredCode, 10);
   const result = inputNum - referenceNumber;
 
-  // DISPLAY: Bottom Right (Magic Result)
   magicResult.textContent = result;
+  
+  // Clear history on unlock? Or keep it? keeping it for now.
+  // historyLog = []; updateHistoryDisplay(); 
   
   unlock();
 }
@@ -173,13 +173,16 @@ function unlock() {
   enteredCode = "";
   renderDots();
   currentErrors = 0; 
+  historyLog = []; // Reset log for next lock
+  updateHistoryDisplay();
 }
 
 function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
   magicResult.textContent = "";
-  historyResult.textContent = "";
+  historyLog = []; // Clear log
+  updateHistoryDisplay();
 }
 
 // --- FOOTER ---
