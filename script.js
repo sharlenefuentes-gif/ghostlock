@@ -1,7 +1,7 @@
 // --- CONFIGURATION ---
 let maxDigits = 6; 
 let referenceNumber = 4050; 
-let forcedErrors = 0; // Set this to 3 in your settings menu to test the full sequence
+let forcedErrors = 0; 
 
 // --- STATE ---
 let enteredCode = "";
@@ -12,11 +12,10 @@ let currentErrors = 0;
 const lockscreen = document.getElementById('lockscreen');
 const homescreen = document.getElementById('homescreen');
 const panel = document.getElementById('panel'); 
-const promptText = document.getElementById('promptText');
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');     // Bottom Right (Unlock Result)
-const historyResult = document.getElementById('historyResult'); // Bottom Left (Error/History)
+const historyResult = document.getElementById('historyResult'); // Bottom Left (Star Sign/History)
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 
 // Upload Inputs
@@ -36,27 +35,31 @@ loadSettings();
 initKeypad();
 renderDots();
 
-// --- HELPER: ZODIAC CALCULATION ---
+// --- ZODIAC LOGIC (Fixed) ---
 function getZodiacSign(day, month) {
-  // Validate basic ranges
+  // Validate
   if (!day || !month || month < 1 || month > 12 || day < 1 || day > 31) return null;
 
-  const days = [20, 19, 21, 20, 21, 22, 23, 23, 23, 23, 22, 22];
-  const signs = ["Capricorn", "Aquarius", "Pisces", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius"];
+  // Standard Zodiac Cutoffs
+  // Jan 20, Feb 19, Mar 21, Apr 20, May 21, Jun 21, Jul 23, Aug 23, Sep 23, Oct 23, Nov 22, Dec 22
   
-  // Logic: specific cutoff days
-  if (month === 1 && day <= 19) return "Capricorn";
-  if (month === 12 && day >= 22) return "Capricorn";
+  if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return "Aquarius";
+  if ((month == 2 && day >= 19) || (month == 3 && day <= 20)) return "Pisces";
+  if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) return "Aries";
+  if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) return "Taurus";
+  if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) return "Gemini";
+  if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) return "Cancer";
+  if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) return "Leo";
+  if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) return "Virgo";
+  if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) return "Libra";
+  if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) return "Scorpio";
+  if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) return "Sagittarius";
+  if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) return "Capricorn";
   
-  // Lookup based on month index (0-11)
-  if (day < days[month - 1]) {
-    return signs[month - 2];
-  } else {
-    return signs[month - 1];
-  }
+  return null;
 }
 
-// --- KEYPAD GENERATION ---
+// --- KEYPAD GENERATION (Fast Response) ---
 function initKeypad() {
   const keys = [
     { n: '1', s: '' }, { n: '2', s: 'ABC' }, { n: '3', s: 'DEF' },
@@ -67,13 +70,36 @@ function initKeypad() {
 
   keypad.innerHTML = keys.map(k => {
     if (k.n === null) return `<div class="key empty"></div>`;
+    // We remove 'onclick' from HTML and add listeners below for speed
     return `
-      <div class="key" onclick="handleTap('${k.n}')">
+      <div class="key" data-digit="${k.n}">
         <div class="key-digit">${k.n}</div>
         <div class="key-sub">${k.s}</div>
       </div>
     `;
   }).join('');
+
+  // Add Fast Touch Listeners
+  document.querySelectorAll('.key').forEach(key => {
+    if (key.classList.contains('empty')) return;
+    
+    // Touchstart = Instant reaction
+    key.addEventListener('touchstart', (e) => {
+      e.preventDefault(); // Stop mouse emulation
+      const digit = key.getAttribute('data-digit');
+      handleTap(digit);
+      
+      // Visual feedback
+      key.classList.add('active');
+      setTimeout(() => key.classList.remove('active'), 100);
+    }, { passive: false });
+
+    // Click fallback for desktop
+    key.addEventListener('click', (e) => {
+      const digit = key.getAttribute('data-digit');
+      handleTap(digit);
+    });
+  });
 }
 
 function renderDots() {
@@ -82,7 +108,7 @@ function renderDots() {
   ).join('');
 }
 
-// --- CORE LOGIC ---
+// --- LOGIC ---
 function handleTap(digit) {
   if (isUnlocked) return;
   if (enteredCode.length < maxDigits) {
@@ -90,7 +116,8 @@ function handleTap(digit) {
     renderDots();
     
     if (enteredCode.length === maxDigits) {
-      setTimeout(attemptUnlock, 100);
+      // Small delay to let the last dot fill visually
+      setTimeout(attemptUnlock, 50);
     }
   }
 }
@@ -99,27 +126,21 @@ function attemptUnlock() {
   // === ERROR PHASE ===
   if (currentErrors < forcedErrors) {
     currentErrors++;
-    
-    let revelationText = enteredCode; // Default to PIN
+    let revelationText = enteredCode; 
 
     // 1st Error: Reveal Star Sign (DDMMYY)
     if (currentErrors === 1) {
-      // Parse DD (first 2) and MM (next 2)
       const d = parseInt(enteredCode.substring(0, 2), 10);
       const m = parseInt(enteredCode.substring(2, 4), 10);
-      
       const sign = getZodiacSign(d, m);
       
-      // If valid date, show Sign. If invalid, show PIN.
-      if (sign) {
-        revelationText = sign;
-      }
+      if (sign) revelationText = sign;
     } 
-    // 2nd, 3rd Error: Reveal PIN (already set as default)
+    // 2nd/3rd Error: Show PIN (Default)
 
-    // Show in Bottom Left
+    // DISPLAY: Bottom Left
     historyResult.textContent = revelationText;
-    historyResult.style.opacity = '1'; 
+    historyResult.style.opacity = '1';
 
     triggerError();
     return;
@@ -129,11 +150,8 @@ function attemptUnlock() {
   const inputNum = parseInt(enteredCode, 10);
   const result = inputNum - referenceNumber;
 
-  // Show Result in Bottom Right
+  // DISPLAY: Bottom Right (Magic Result)
   magicResult.textContent = result;
-  
-  // Optional: Clear the bottom left history on success? 
-  // historyResult.textContent = ""; 
   
   unlock();
 }
@@ -160,22 +178,17 @@ function unlock() {
 function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
-  // Clear displays
   magicResult.textContent = "";
   historyResult.textContent = "";
 }
 
-// --- FOOTER BUTTONS ---
-if(cancelFooterBtn) {
-  cancelFooterBtn.addEventListener('click', () => {
-    if (enteredCode.length > 0) {
-      enteredCode = "";
-      renderDots();
-    }
-  });
-}
+// --- FOOTER ---
+cancelFooterBtn.addEventListener('click', () => {
+  enteredCode = "";
+  renderDots();
+});
 
-// --- SETTINGS LOGIC ---
+// --- SETTINGS ---
 function openSettings() {
   settingsOverlay.classList.add('open');
   refInput.value = referenceNumber;
@@ -215,11 +228,8 @@ document.addEventListener('click', (e) => {
   
   if (topTapCount === 2) {
     const width = window.innerWidth;
-    if (e.clientX < width * 0.3) {
-      uploadLock.click();
-    } else if (e.clientX > width * 0.7) {
-      uploadHome.click();
-    }
+    if (e.clientX < width * 0.3) uploadLock.click();
+    else if (e.clientX > width * 0.7) uploadHome.click();
   }
 });
 
@@ -300,7 +310,7 @@ function loadSettings() {
 }
 
 function saveImage(key, dataUrl) {
-  try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large to save!"); }
+  try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large!"); }
 }
 
 uploadLock.addEventListener('change', (e) => {
