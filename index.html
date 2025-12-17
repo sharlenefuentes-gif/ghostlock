@@ -61,23 +61,18 @@
 
         <div id="tab-guide" class="menu-section">
           <div class="guide-text">
-            
             <div class="guide-row">
               <span><strong>Background Setup</strong><br>Double-tap top corners to upload images (Left for Lock, Right for Home).</span>
             </div>
-
             <div class="guide-row">
-              <span><strong>Digit Length</strong><br>Triple-tap the top-center area to toggle between 4 or 6 digit passcode.</span>
+              <span><strong>Digit Length</strong><br>Triple-tap the top-center to toggle 4 or 6 digit passcode.</span>
             </div>
-
             <div class="guide-row">
               <span><strong>Quick Re-Lock</strong><br>Triple-tap bottom-center on homescreen to lock instantly.</span>
             </div>
-
             <div class="guide-row" style="border:none">
               <span><strong>Access Menu</strong><br>Swipe down with two fingers anywhere on screen.</span>
             </div>
-
           </div>
         </div>
 
@@ -94,7 +89,6 @@
   
   <script src="script.js"></script>
   <script>
-    // Tab Switcher Logic
     function switchTab(tabName) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
@@ -107,10 +101,7 @@
         document.getElementById('tab-guide').classList.add('active');
       }
     }
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
-    }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
   </script>
 </body>
 </html>
