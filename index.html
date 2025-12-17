@@ -10,8 +10,8 @@
 
   <link rel="manifest" href="manifest.json">
   
-  <link rel="icon" type="image/png" href="icon.png">
-  <link rel="apple-touch-icon" href="icon.png"> 
+  <link rel="icon" type="image/jpeg" href="icon.jpg">
+  <link rel="apple-touch-icon" href="icon.jpg"> 
   
   <title>Magic Lockscreen</title>
   <link rel="stylesheet" href="styles.css" />
@@ -20,6 +20,7 @@
   <div class="app">
     
     <main class="homescreen" id="homescreen">
+      <div id="historyResult" class="history-result"></div>
       <div id="magicResult" class="magic-result"></div>
     </main>
 
@@ -31,7 +32,7 @@
           <div class="prompt" id="promptText">Enter Passcode</div>
           <div class="dots" id="dots"></div>
           <div class="keypad" id="keypad"></div>
-          <div class="cancel-btn" id="cancelBtn" style="display:none;"></div>
+          <div class="cancel-btn" id="cancelBtn">Cancel</div>
         </div>
       </div>
 
@@ -43,7 +44,59 @@
 
     <div id="settingsOverlay" class="settings-overlay">
       <div class="settings-sheet">
-         </div>
+        <div class="sheet-header">
+          <div class="sheet-title">Magic Settings</div>
+        </div>
+
+        <div class="tab-group">
+          <button class="tab-btn active" onclick="switchTab('config')">Config</button>
+          <button class="tab-btn" onclick="switchTab('guide')">Guide</button>
+        </div>
+
+        <div class="sheet-content">
+          
+          <div id="tab-config" class="menu-section active">
+            <div class="list-group">
+              <div class="list-item">
+                <div class="label">Reference Code</div>
+                <input type="number" id="refInput" class="clean-input" value="4050" inputmode="numeric">
+              </div>
+              <div class="guide-text">The result will always calculate to this number.</div>
+            </div>
+
+            <div class="list-group">
+              <div class="list-item">
+                <div class="label">Forced Errors</div>
+                <div class="value">
+                  <button id="decErrors" class="stepper-btn">−</button>
+                  <span id="errorCountDisplay">0</span>
+                  <button id="incErrors" class="stepper-btn">+</button>
+                </div>
+              </div>
+              <div class="guide-text">Next N attempts will fail (shake) before unlocking.</div>
+            </div>
+          </div>
+
+          <div id="tab-guide" class="menu-section">
+            <div class="guide-row">
+              <span><strong>Set Backgrounds</strong><br>Double-tap Top-Left (Lock) or Top-Right (Home).</span>
+            </div>
+            <div class="guide-row">
+              <span><strong>Change Length</strong><br>Triple-tap Top-Center (toggle 4/6 digits).</span>
+            </div>
+            <div class="guide-row">
+              <span><strong>Quick Re-Lock</strong><br>Triple-tap bottom-center on homescreen to lock instantly.</span>
+            </div>
+            <div class="guide-row" style="border:none">
+              <span><strong>Access Menu</strong><br>Swipe down with two fingers anywhere on screen.</span>
+            </div>
+          </div>
+        </div>
+
+        <button id="closeSettingsBtn" class="close-action">Done</button>
+        <div class="credits-sub">Designed by James Seth Capacite</div>
+
+      </div>
     </div>
 
     <input id="uploadLock" type="file" accept="image/*" style="display: none" />
@@ -52,11 +105,23 @@
   </div>
   
   <script src="script.js"></script>
-  
   <script>
+    // Simple Tab Switcher for the Settings Menu
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
+      
+      if(tabName === 'config') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('tab-config').classList.add('active');
+      } else {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('tab-guide').classList.add('active');
+      }
+    }
+
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('Service Worker Registered'));
+      navigator.serviceWorker.register('./sw.js');
     }
   </script>
 </body>
