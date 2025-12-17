@@ -10,11 +10,13 @@ let enteredCode = "";
 let isUnlocked = false;
 let currentErrors = 0; 
 let historyLog = [];
-let detectedZodiac = "Unknown"; // Store star sign here
+let detectedZodiac = null; // Changed to null by default
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
 const homescreen = document.getElementById('homescreen');
+const wallpaperImg = document.getElementById('wallpaperImg'); // THE IMAGE TAG
+
 const panel = document.getElementById('panel'); 
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
@@ -156,7 +158,7 @@ function attemptUnlock() {
       const sign = getZodiacSign(d, m);
       if (sign) {
         resultText = sign;
-        detectedZodiac = sign; // Save for Notes
+        detectedZodiac = sign; 
       }
     }
     historyLog.push(resultText);
@@ -173,8 +175,24 @@ function attemptUnlock() {
     historyResult.style.display = 'none'; 
     notesContent.classList.add('active');
     
-    // CREATIVE NOTES TEXT
-    notesContent.textContent = `Manifestation List:\n\n1. I will meet a ${detectedZodiac}.\n2. Their name is ${spectatorName}.\n3. They will open this phone with the code ${result}.`;
+    // --- MYSTERIOUS / INTIMATE SCRIPT ---
+    let time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    // Base Header
+    let script = `${time}\nPersonal Intuition Log\n\n`;
+    
+    // The Person
+    script += `I sense a strong connection tonight with ${spectatorName}.\n\n`;
+    
+    // The Zodiac (Only if detected)
+    if (detectedZodiac) {
+      script += `There is a distinct ${detectedZodiac} energy guiding this moment.\n\n`;
+    }
+    
+    // The Prediction
+    script += `The code locked in their mind is ${result}.`;
+    
+    notesContent.textContent = script;
     
   } else {
     magicResult.style.display = 'block';
@@ -203,6 +221,7 @@ function unlock() {
   enteredCode = "";
   renderDots();
   currentErrors = 0; 
+  updateWallpaper(); // Ensure BG is correct for Unlocked State
 }
 
 function reLock() {
@@ -212,7 +231,8 @@ function reLock() {
   magicResult.textContent = "";
   historyLog = [];
   historyResult.innerHTML = "";
-  detectedZodiac = "Unknown"; // Reset zodiac
+  detectedZodiac = null; 
+  updateWallpaper(); // Reset to Lock Screen BG
 }
 
 // --- BUTTONS ---
@@ -244,7 +264,7 @@ function openSettings() {
 function closeSettings() {
   settingsOverlay.classList.remove('open');
   saveSettings();
-  updateHomeBackground(); // Apply BG changes
+  updateWallpaper(); // Apply BG changes immediately
 }
 closeSettingsBtn.addEventListener('click', closeSettings);
 
@@ -307,23 +327,31 @@ function loadSettings() {
   const savedName = localStorage.getItem('spectatorName'); if (savedName) spectatorName = savedName;
   const savedErrors = localStorage.getItem('forcedErrors'); if (savedErrors) forcedErrors = parseInt(savedErrors, 10);
   
-  const savedLock = localStorage.getItem('bgLock'); if (savedLock) lockscreen.style.backgroundImage = `url('${savedLock}')`;
-  
-  // Apply correct Home BG
-  updateHomeBackground();
+  updateWallpaper();
 }
 
-// Background Swapping Logic
-function updateHomeBackground() {
-  const savedHome = localStorage.getItem('bgHome'); 
+// --- WALLPAPER MANAGER ---
+function updateWallpaper() {
+  const savedLock = localStorage.getItem('bgLock');
+  const savedHome = localStorage.getItem('bgHome');
   const savedNotesBG = localStorage.getItem('bgNotes');
   
-  if (notesMode && savedNotesBG) {
-    homescreen.style.backgroundImage = `url('${savedNotesBG}')`;
-  } else if (savedHome) {
-    homescreen.style.backgroundImage = `url('${savedHome}')`;
+  if (!isUnlocked) {
+    // LOCKSCREEN STATE
+    if (savedLock) {
+      wallpaperImg.src = savedLock;
+    } else {
+      wallpaperImg.src = ""; // Or a default black image
+    }
   } else {
-    homescreen.style.backgroundImage = '';
+    // HOMESCREEN STATE
+    if (notesMode && savedNotesBG) {
+      wallpaperImg.src = savedNotesBG;
+    } else if (savedHome) {
+      wallpaperImg.src = savedHome;
+    } else {
+      wallpaperImg.src = "";
+    }
   }
 }
 
@@ -331,18 +359,21 @@ function updateHomeBackground() {
 function saveImage(key, dataUrl) { try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large!"); } }
 
 uploadLock.addEventListener('change', (e) => {
-  const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { lockscreen.style.backgroundImage = `url('${evt.target.result}')`; saveImage('bgLock', evt.target.result); }; reader.readAsDataURL(file); }
+  const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { 
+    saveImage('bgLock', evt.target.result); 
+    updateWallpaper();
+  }; reader.readAsDataURL(file); }
 });
 uploadHome.addEventListener('change', (e) => {
   const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { 
     saveImage('bgHome', evt.target.result); 
-    updateHomeBackground();
+    updateWallpaper();
   }; reader.readAsDataURL(file); }
 });
 uploadNotes.addEventListener('change', (e) => {
   const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { 
     saveImage('bgNotes', evt.target.result); 
-    updateHomeBackground();
+    updateWallpaper();
     alert("Notes background saved!");
   }; reader.readAsDataURL(file); }
 });
