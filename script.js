@@ -1,7 +1,7 @@
 // --- CONFIGURATION ---
 let maxDigits = 6; 
 let referenceNumber = 4050; 
-let forcedErrors = 0; 
+let forcedErrors = 0; // Set this to 3 in your settings menu to test the full sequence
 
 // --- STATE ---
 let enteredCode = "";
@@ -15,8 +15,8 @@ const panel = document.getElementById('panel');
 const promptText = document.getElementById('promptText');
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
-const magicResult = document.getElementById('magicResult');
-const historyResult = document.getElementById('historyResult'); 
+const magicResult = document.getElementById('magicResult');     // Bottom Right (Unlock Result)
+const historyResult = document.getElementById('historyResult'); // Bottom Left (Error/History)
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 
 // Upload Inputs
@@ -35,6 +35,26 @@ const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 loadSettings(); 
 initKeypad();
 renderDots();
+
+// --- HELPER: ZODIAC CALCULATION ---
+function getZodiacSign(day, month) {
+  // Validate basic ranges
+  if (!day || !month || month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+  const days = [20, 19, 21, 20, 21, 22, 23, 23, 23, 23, 22, 22];
+  const signs = ["Capricorn", "Aquarius", "Pisces", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius"];
+  
+  // Logic: specific cutoff days
+  if (month === 1 && day <= 19) return "Capricorn";
+  if (month === 12 && day >= 22) return "Capricorn";
+  
+  // Lookup based on month index (0-11)
+  if (day < days[month - 1]) {
+    return signs[month - 2];
+  } else {
+    return signs[month - 1];
+  }
+}
 
 // --- KEYPAD GENERATION ---
 function initKeypad() {
@@ -62,24 +82,7 @@ function renderDots() {
   ).join('');
 }
 
-// --- ZODIAC LOGIC ---
-function getZodiacSign(day, month) {
-  // Simple check for invalid dates
-  if (month < 1 || month > 12 || day < 1 || day > 31) return "";
-
-  const days = [20, 19, 21, 20, 21, 22, 23, 23, 23, 23, 22, 22];
-  const signs = ["Capricorn", "Aquarius", "Pisces", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius"];
-  
-  let sign = "";
-  if (month == 1 && day <= 19) sign = "Capricorn";
-  else if (month == 12 && day >= 22) sign = "Capricorn";
-  else if (day < days[month - 1]) sign = signs[month - 2];
-  else sign = signs[month - 1];
-
-  return sign;
-}
-
-// --- UNLOCK LOGIC ---
+// --- CORE LOGIC ---
 function handleTap(digit) {
   if (isUnlocked) return;
   if (enteredCode.length < maxDigits) {
@@ -93,37 +96,43 @@ function handleTap(digit) {
 }
 
 function attemptUnlock() {
-  // --- ERROR PHASE (Forced Errors) ---
+  // === ERROR PHASE ===
   if (currentErrors < forcedErrors) {
     currentErrors++;
     
-    // 1st Error: Try to read as Date (DDMMYY) and show Zodiac
+    let revelationText = enteredCode; // Default to PIN
+
+    // 1st Error: Reveal Star Sign (DDMMYY)
     if (currentErrors === 1) {
-      if (enteredCode.length === 6) {
-        const d = parseInt(enteredCode.substring(0, 2));
-        const m = parseInt(enteredCode.substring(2, 4));
-        const sign = getZodiacSign(d, m);
-        historyResult.textContent = sign ? sign : enteredCode; 
-      } else {
-        historyResult.textContent = enteredCode;
+      // Parse DD (first 2) and MM (next 2)
+      const d = parseInt(enteredCode.substring(0, 2), 10);
+      const m = parseInt(enteredCode.substring(2, 4), 10);
+      
+      const sign = getZodiacSign(d, m);
+      
+      // If valid date, show Sign. If invalid, show PIN.
+      if (sign) {
+        revelationText = sign;
       }
     } 
-    // 2nd Error (or more): Show the raw numbers
-    else {
-      historyResult.textContent = enteredCode;
-    }
+    // 2nd, 3rd Error: Reveal PIN (already set as default)
+
+    // Show in Bottom Left
+    historyResult.textContent = revelationText;
+    historyResult.style.opacity = '1'; 
 
     triggerError();
     return;
   }
 
-  // --- UNLOCK PHASE ---
+  // === UNLOCK PHASE ===
   const inputNum = parseInt(enteredCode, 10);
   const result = inputNum - referenceNumber;
 
+  // Show Result in Bottom Right
   magicResult.textContent = result;
   
-  // Clear the bottom-left history or set it to something specific if you want
+  // Optional: Clear the bottom left history on success? 
   // historyResult.textContent = ""; 
   
   unlock();
@@ -151,18 +160,20 @@ function unlock() {
 function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
-  // Clear displays on lock
+  // Clear displays
   magicResult.textContent = "";
   historyResult.textContent = "";
 }
 
 // --- FOOTER BUTTONS ---
-cancelFooterBtn.addEventListener('click', () => {
-  if (enteredCode.length > 0) {
-    enteredCode = "";
-    renderDots();
-  }
-});
+if(cancelFooterBtn) {
+  cancelFooterBtn.addEventListener('click', () => {
+    if (enteredCode.length > 0) {
+      enteredCode = "";
+      renderDots();
+    }
+  });
+}
 
 // --- SETTINGS LOGIC ---
 function openSettings() {
