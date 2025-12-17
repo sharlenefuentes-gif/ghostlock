@@ -7,7 +7,6 @@ let forcedErrors = 0;
 let enteredCode = "";
 let isUnlocked = false;
 let currentErrors = 0; 
-let failedAttempts = []; 
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
@@ -18,8 +17,7 @@ const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');
 const historyResult = document.getElementById('historyResult'); 
-const cancelBtn = document.getElementById('cancelBtn'); 
-const emergencyBtn = document.getElementById('emergencyBtn');
+// Note: Inner cancelBtn removed from HTML
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 
 // Upload Inputs
@@ -45,10 +43,12 @@ function initKeypad() {
     { n: '1', s: '' }, { n: '2', s: 'ABC' }, { n: '3', s: 'DEF' },
     { n: '4', s: 'GHI' }, { n: '5', s: 'JKL' }, { n: '6', s: 'MNO' },
     { n: '7', s: 'PQRS' }, { n: '8', s: 'TUV' }, { n: '9', s: 'WXYZ' },
+    // Empty | 0 | Empty
     { n: null, s: '' }, { n: '0', s: '' }, { n: null, s: '' }
   ];
 
   keypad.innerHTML = keys.map(k => {
+    // .empty class combined with CSS visibility:hidden handles the ghosting
     if (k.n === null) return `<div class="key empty"></div>`;
     return `
       <div class="key" onclick="handleTap('${k.n}')">
@@ -79,20 +79,16 @@ function handleTap(digit) {
 }
 
 function attemptUnlock() {
-  // Check if we should force an error
   if (currentErrors < forcedErrors) {
     currentErrors++;
     triggerError();
     return;
   }
 
-  // Calculate Magic Number
   const inputNum = parseInt(enteredCode, 10);
   const result = inputNum - referenceNumber;
 
-  // Visual Unlock
   magicResult.textContent = result;
-  // Show history (the calculation)
   historyResult.textContent = `${inputNum} - ${referenceNumber} =`;
   
   unlock();
@@ -112,10 +108,9 @@ function triggerError() {
 function unlock() {
   isUnlocked = true;
   lockscreen.classList.add('unlocked');
-  // Reset for next time
   enteredCode = "";
   renderDots();
-  currentErrors = 0; // Reset error counter after successful unlock
+  currentErrors = 0; 
 }
 
 function reLock() {
@@ -125,17 +120,13 @@ function reLock() {
   historyResult.textContent = "";
 }
 
-// --- BUTTON LISTENERS ---
-cancelBtn.addEventListener('click', () => {
+// --- FOOTER BUTTONS ---
+cancelFooterBtn.addEventListener('click', () => {
   if (enteredCode.length > 0) {
-    enteredCode = enteredCode.slice(0, -1);
+    // If typing, it acts as backspace/clear
+    enteredCode = "";
     renderDots();
   }
-});
-// Footer buttons act as Cancel/Delete too
-cancelFooterBtn.addEventListener('click', () => {
-  enteredCode = "";
-  renderDots();
 });
 
 // --- SETTINGS LOGIC ---
@@ -166,16 +157,13 @@ incErrors.addEventListener('click', () => {
   errorCountDisplay.textContent = forcedErrors;
 });
 
-
 // --- GESTURES ---
 
-// 1. Double Tap (Top Corners for BG Upload)
+// 1. Double Tap (Top Corners)
 let topTapCount = 0;
 let topTapTimer = null;
 document.addEventListener('click', (e) => {
-  // Only detect double taps at top of screen
   if (e.clientY > 100) return; 
-  
   topTapCount++;
   if (topTapTimer) clearTimeout(topTapTimer);
   topTapTimer = setTimeout(() => { topTapCount = 0; }, 300);
@@ -183,10 +171,8 @@ document.addEventListener('click', (e) => {
   if (topTapCount === 2) {
     const width = window.innerWidth;
     if (e.clientX < width * 0.3) {
-      // Top Left -> Lock BG
       uploadLock.click();
     } else if (e.clientX > width * 0.7) {
-      // Top Right -> Home BG
       uploadHome.click();
     }
   }
@@ -198,32 +184,26 @@ let centerTapTimer = null;
 document.addEventListener('click', (e) => {
   if (e.clientY > 100) return;
   const width = window.innerWidth;
-  // Check if Center
   if (e.clientX > width * 0.3 && e.clientX < width * 0.7) {
     centerTapCount++;
     if (centerTapTimer) clearTimeout(centerTapTimer);
     centerTapTimer = setTimeout(() => { centerTapCount = 0; }, 300);
     
     if (centerTapCount === 3) {
-      toggleDigits();
+      maxDigits = (maxDigits === 4) ? 6 : 4;
+      enteredCode = "";
+      renderDots();
+      alert(`Passcode length set to ${maxDigits}`);
+      saveSettings();
     }
   }
 });
 
-function toggleDigits() {
-  maxDigits = (maxDigits === 4) ? 6 : 4;
-  enteredCode = "";
-  renderDots();
-  alert(`Passcode length set to ${maxDigits}`);
-  saveSettings();
-}
-
-// 3. Triple Tap Bottom Center (Re-Lock)
+// 3. Triple Tap Bottom (Re-Lock)
 let bottomTapCount = 0;
 let bottomTapTimer = null;
 document.addEventListener('click', (e) => {
   if (!isUnlocked) return;
-  // Bottom area check
   if (e.clientY > window.innerHeight - 150) {
     bottomTapCount++;
     if (bottomTapTimer) clearTimeout(bottomTapTimer);
@@ -232,9 +212,8 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 4. Two-Finger Swipe Down (Open Settings)
+// 4. Two-Finger Swipe Down (Settings)
 let twoFingerStart = null;
-
 window.addEventListener('touchstart', (e) => {
   if (e.touches.length === 2) {
     twoFingerStart = e.touches[0].clientY;
@@ -244,7 +223,6 @@ window.addEventListener('touchstart', (e) => {
 window.addEventListener('touchend', (e) => {
   if (twoFingerStart !== null) {
     const endY = e.changedTouches[0].clientY;
-    // Check if moved down by at least 50px
     if ((endY - twoFingerStart) > 50) { 
       openSettings();
     }
@@ -252,8 +230,7 @@ window.addEventListener('touchend', (e) => {
   }
 }, {passive: false});
 
-
-// --- STORAGE & FILES ---
+// --- STORAGE ---
 function saveSettings() {
   localStorage.setItem('magicRefNum', referenceNumber);
   localStorage.setItem('maxDigits', maxDigits); 
@@ -270,7 +247,6 @@ function loadSettings() {
   const savedErrors = localStorage.getItem('forcedErrors');
   if (savedErrors) forcedErrors = parseInt(savedErrors, 10);
 
-  // Load Backgrounds
   const savedLock = localStorage.getItem('bgLock');
   if (savedLock) lockscreen.style.backgroundImage = `url('${savedLock}')`;
 
@@ -282,7 +258,6 @@ function saveImage(key, dataUrl) {
   try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large to save!"); }
 }
 
-// File Input Listeners
 uploadLock.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (file) {
