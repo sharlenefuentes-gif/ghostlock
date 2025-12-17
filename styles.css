@@ -3,172 +3,212 @@
   --bg-color: #000;
   --text-color: #fff;
   
-  /* Liquid Glass Tokens (iOS 26 Concept) */
-  --glass-surface: rgba(255, 255, 255, 0.08);
-  --glass-border-top: rgba(255, 255, 255, 0.35); /* Top light source */
-  --glass-border-bottom: rgba(255, 255, 255, 0.05); /* Bottom shadow */
-  --glass-blur: blur(30px);
-  --glass-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  /* Modern iOS Color Tokens */
+  --glass-material: rgba(30, 30, 30, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.08);
+  --accent-blue: #0A84FF;
+  --danger-red: #FF453A;
+  --text-secondary: rgba(235, 235, 245, 0.6);
 }
 
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  /* CRITICAL FIX: Lock Body to Screen (Anti-Shift) */
-  position: fixed; 
-  top: 0; left: 0; right: 0; bottom: 0;
+  /* Dynamic Viewport Height to prevent shifting */
+  height: 100dvh; 
   width: 100%;
-  height: 100svh; /* Small Viewport Height ignores browser chrome */
-  
   margin: 0; padding: 0;
   background: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font-stack);
   overflow: hidden;
-  overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   
-  /* Safe Area Handling */
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  /* Prevent rubber-banding */
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
 }
 
+/* --- APP CONTAINER --- */
 .app {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%; position: relative; overflow: hidden;
 }
 
-/* --- BACKGROUND LAYERS --- */
-.homescreen, .lockscreen {
-  position: absolute; top: 0; left: 0; 
-  width: 100%; height: 100%; 
-  background-color: #000;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+main {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background-size: cover; background-position: center;
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.homescreen { z-index: 1; }
-
-.lockscreen { 
-  z-index: 10; 
-  display: flex; flex-direction: column; 
-  transition: opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+/* --- HOMESCREEN --- */
+.homescreen {
+  z-index: 1; opacity: 1; transform: scale(1);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding-top: 120px;
+}
+.magic-result {
+  font-size: 80px; font-weight: 200; color: #fff;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.history-result {
+  font-size: 20px; color: rgba(255,255,255,0.7); margin-bottom: 10px;
+  font-variant-numeric: tabular-nums;
 }
 
-.lockscreen.unlocked { 
-  opacity: 0; 
-  pointer-events: none; 
-  transform: scale(1.1); 
+/* --- LOCKSCREEN --- */
+.lockscreen {
+  z-index: 2; opacity: 1; transform: translateY(0);
+  background-color: #000; /* Fallback */
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
 
-/* Spacer to push content down from notch area */
-.status-bar-spacer { height: 40px; flex-shrink: 0; }
-
-.content-wrapper {
-  flex: 1; display: flex; flex-direction: column; 
-  justify-content: center; /* Centered, but biased towards bottom by margin */
-  align-items: center;
-  margin-top: auto; 
-  margin-bottom: 8vh; /* Lift keypad slightly */
-}
-
-.passcode-panel { display: flex; flex-direction: column; align-items: center; width: 100%; }
-
-.prompt { 
-  font-size: 22px; font-weight: 500; margin-bottom: 30px; 
-  letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.dots { display: flex; gap: 24px; margin-bottom: 45px; height: 12px; }
-.dot { 
-  width: 12px; height: 12px; border-radius: 50%; 
-  border: 1.5px solid rgba(255, 255, 255, 0.5); 
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  transition: all 0.2s; 
-}
-.dot.filled { background: #fff; border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.6); }
-
-/* --- LIQUID GLASS KEYPAD (iOS 26 Style) --- */
-.keypad { 
-  display: grid; grid-template-columns: repeat(3, 80px); 
-  gap: 25px; justify-content: center; margin-bottom: 20px; 
-}
-
-.key {
-  width: 80px; height: 80px; border-radius: 50%;
-  
-  /* Liquid Glass Material */
-  background: var(--glass-surface);
-  backdrop-filter: var(--glass-blur) saturate(160%); 
-  -webkit-backdrop-filter: var(--glass-blur) saturate(160%);
-  
-  /* Light & Shadow (Refraction) */
-  border-top: 1px solid var(--glass-border-top);
-  border-bottom: 1px solid var(--glass-border-bottom);
-  border-left: 1px solid rgba(255,255,255,0.1);
-  border-right: 1px solid rgba(255,255,255,0.1);
-  
-  box-shadow: 
-    inset 0 0 20px rgba(255,255,255,0.02),
-    0 15px 35px rgba(0,0,0,0.25);
-  
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: pointer; position: relative; overflow: hidden;
-  transition: all 0.15s ease-out;
-}
-
-/* Internal Glint */
-.key::after {
-  content: ''; position: absolute; top: 5px; left: 20px; right: 20px; height: 30px;
-  background: radial-gradient(ellipse at center, rgba(255,255,255,0.15) 0%, transparent 70%);
+.lockscreen.unlocked {
+  transform: translateY(-100%);
   pointer-events: none;
 }
 
-.key:active { 
-  transform: scale(0.92);
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
+.status-bar-spacer { height: 44px; width: 100%; }
+
+.content-wrapper {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: calc(100% - 140px);
 }
 
-.key-digit { 
-  font-size: 34px; font-weight: 400; line-height: 1; margin-bottom: 2px; z-index: 2; 
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.key-sub { 
-  font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; 
-  opacity: 0.5; z-index: 2; 
+/* --- PASSCODE PANEL --- */
+.passcode-panel {
+  display: flex; flex-direction: column; align-items: center;
+  width: 100%; max-width: 340px;
+  transition: transform 0.1s ease-in-out;
 }
 
-/* Hidden keys (beside 0) */
+.passcode-panel.shake {
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-4px, 0, 0); }
+  20%, 80% { transform: translate3d(8px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-16px, 0, 0); }
+  40%, 60% { transform: translate3d(16px, 0, 0); }
+}
+
+.prompt {
+  font-size: 22px; font-weight: 400; margin-bottom: 24px;
+  letter-spacing: 0.5px;
+}
+
+.dots {
+  display: flex; gap: 24px; margin-bottom: 40px; height: 16px;
+}
+.dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid #fff; transition: all 0.2s;
+}
+.dot.filled { background: #fff; }
+
+/* --- KEYPAD --- */
+.keypad {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  column-gap: 32px; row-gap: 20px;
+}
+
+.key {
+  width: 78px; height: 78px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; position: relative;
+  transition: background 0.2s;
+}
+
+.key:active { background: rgba(255, 255, 255, 0.4); }
+
+.key-digit { font-size: 34px; font-weight: 400; line-height: 1; margin-bottom: 2px; }
+.key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; }
+
+/* --- FIX: HIDE EMPTY KEYS --- */
 .key.empty { 
-  background: transparent; backdrop-filter: none; 
-  border: none; box-shadow: none; pointer-events: none;
+  visibility: hidden; 
+  pointer-events: none;
+}
+
+.cancel-btn {
+  margin-top: 30px; font-size: 17px; font-weight: 600; cursor: pointer; height: 30px;
 }
 
 /* --- FOOTER BANNER --- */
 .lock-footer-banner {
-  position: absolute; bottom: 0; left: 0; width: 100%; 
-  height: 80px;
-  display: flex; align-items: center; justify-content: space-between; 
-  padding: 0 40px;
-  padding-bottom: max(20px, env(safe-area-inset-bottom));
-  pointer-events: none;
+  position: absolute; bottom: 40px; left: 0; width: 100%;
+  display: flex; justify-content: space-between; padding: 0 40px;
 }
-.footer-button { 
-  pointer-events: auto;
-  font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); cursor: pointer; 
-  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
+.footer-button { font-size: 16px; font-weight: 500; cursor: pointer; }
 
-/* Magic Result (Hidden usually) */
-.magic-result {
-  position: absolute; bottom: 50px; right: 30px;
-  font-size: 15px; font-weight: 500; color: rgba(255, 255, 255, 0.3);
-}
-
-/* Settings Overlay */
+/* --- SETTINGS OVERLAY --- */
 .settings-overlay {
-  position: absolute; inset: 0; z-index: 100; display: none; /* Add JS to show/hide */
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  display: flex; align-items: flex-end; justify-content: center;
 }
+.settings-overlay.open { opacity: 1; pointer-events: auto; }
+
+.settings-sheet {
+  width: 95%; max-width: 400px; background: #1C1C1E;
+  border-radius: 20px 20px 0 0; padding: 20px; padding-bottom: 40px;
+  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.5); border-top: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+}
+.settings-overlay.open .settings-sheet { transform: translateY(0); }
+
+.sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.sheet-title { font-size: 20px; font-weight: 700; }
+
+.tab-group {
+  display: flex; background: rgba(118, 118, 128, 0.24);
+  padding: 2px; border-radius: 9px; margin-bottom: 20px;
+}
+.tab-btn {
+  flex: 1; background: transparent; border: none; padding: 6px;
+  color: #fff; font-size: 13px; font-weight: 500; border-radius: 7px;
+}
+.tab-btn.active { background: #636366; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
+
+.menu-section { display: none; }
+.menu-section.active { display: block; animation: fadeIn 0.2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.list-group {
+  background: rgba(255,255,255,0.05); border-radius: 12px;
+  overflow: hidden; margin-bottom: 15px;
+}
+.list-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.list-item:last-child { border-bottom: none; }
+
+.label { font-size: 15px; font-weight: 500; }
+.value { font-size: 15px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; }
+
+.stepper-btn {
+  width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2);
+  background: transparent; color: #fff; font-size: 18px; line-height: 1;
+}
+.clean-input {
+  background: transparent; border: none; color: var(--accent-blue);
+  font-size: 16px; font-weight: 600; text-align: right; width: 80px;
+}
+.clean-input:focus { outline: none; border-bottom: 1px solid var(--accent-blue); }
+
+.guide-text { font-size: 13px; color: var(--text-secondary); padding: 8px 16px; line-height: 1.4; }
+.guide-row { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; line-height: 1.4; }
+.guide-row strong { color: #fff; display: block; margin-bottom: 2px; }
+.guide-row span { color: var(--text-secondary); }
+
+.close-action {
+  width: 100%; background: #303032; color: #fff; border: none;
+  padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 600; margin-top: 10px;
+}
+.credits-sub { text-align: center; font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 15px; }
