@@ -3,13 +3,11 @@
   --bg-color: #000;
   --text-color: #fff;
   
-  /* Liquid Glass Tokens (iOS 26 Concept) */
+  /* Liquid Glass Tokens */
   --glass-surface: rgba(255, 255, 255, 0.08);
-  --glass-border-top: rgba(255, 255, 255, 0.35); /* Top light source */
-  --glass-border-bottom: rgba(255, 255, 255, 0.05); /* Bottom shadow */
+  --glass-border-top: rgba(255, 255, 255, 0.35);
+  --glass-border-bottom: rgba(255, 255, 255, 0.05);
   --glass-blur: blur(30px);
-  --glass-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-  
   --accent-blue: #0A84FF;
   --text-secondary: rgba(235, 235, 245, 0.6);
 }
@@ -35,19 +33,39 @@ main {
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* --- HOMESCREEN (Updated Layout) --- */
 .homescreen {
-  z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-  padding-top: 120px;
+  z-index: 1; 
+  /* Removed flex-centering so we can use absolute corners */
+  display: block; 
 }
+
+/* Bottom Right: Magic Number (Difference) */
 .magic-result {
-  font-size: 80px; font-weight: 200; color: #fff;
-  text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  position: absolute;
+  bottom: 40px;
+  right: 30px;
+  font-size: 24px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4); /* Merely visible (Ghostly) */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  pointer-events: none;
 }
+
+/* Bottom Left: History (Pin they entered) */
 .history-result {
-  font-size: 20px; color: rgba(255,255,255,0.7); margin-bottom: 10px;
+  position: absolute;
+  bottom: 40px;
+  left: 30px;
+  font-size: 16px; /* Slightly smaller for the equation */
+  color: rgba(255, 255, 255, 0.4); /* Merely visible */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  pointer-events: none;
   font-variant-numeric: tabular-nums;
 }
 
+
+/* --- LOCKSCREEN --- */
 .lockscreen {
   z-index: 2; background-color: #000;
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -56,14 +74,13 @@ main {
 
 .content-wrapper {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: calc(100% - 100px); /* Adjusted for layout */
+  height: calc(100% - 100px);
 }
 
 /* --- PASSCODE PANEL --- */
 .passcode-panel {
   display: flex; flex-direction: column; align-items: center;
   width: 100%; max-width: 340px;
-  transition: transform 0.1s;
 }
 .passcode-panel.shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
 @keyframes shake {
@@ -95,12 +112,12 @@ main {
 .key {
   width: 78px; height: 78px; border-radius: 50%;
   
-  /* The Liquid Glass Gradient (Restored) */
+  /* Liquid Glass Gradient */
   background: radial-gradient(ellipse at center, rgba(255,255,255,0.15) 0%, transparent 70%);
   background-color: var(--glass-surface);
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
   
-  /* Subtle Borders */
+  /* Borders & Shadows */
   box-shadow: 
     inset 0 1px 0 0 var(--glass-border-top),
     inset 0 -1px 0 0 var(--glass-border-bottom),
@@ -119,12 +136,8 @@ main {
 .key-digit { font-size: 34px; font-weight: 400; line-height: 1; margin-bottom: 2px; }
 .key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; }
 
-/* --- FIX: GHOST HIGHLIGHT REMOVAL --- */
-/* This forces the keys beside 0 to be completely invisible */
-.key.empty {
-  visibility: hidden;
-  pointer-events: none;
-}
+/* Highlight Removal */
+.key.empty { visibility: hidden; pointer-events: none; }
 
 /* --- FOOTER --- */
 .lock-footer-banner {
