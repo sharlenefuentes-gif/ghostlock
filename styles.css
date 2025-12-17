@@ -4,31 +4,29 @@
   --text-color: #fff;
   
   /* Modern iOS 18+ Color Tokens */
+  --key-bg-base: rgba(255, 255, 255, 0.12); /* More transparent base */
+  --key-pressed: rgba(255, 255, 255, 0.35); /* Solid on press */
   --glass-material: rgba(30, 30, 30, 0.65);
   --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-highlight: rgba(255, 255, 255, 0.08);
   --accent-blue: #0A84FF;
-  --danger-red: #FF453A;
   --text-secondary: rgba(235, 235, 245, 0.6);
 }
 
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  /* CRITICAL FIX: Use Dynamic Viewport Height to prevent shifting */
+  /* CRITICAL FIX: Lock the viewport to the dynamic height and fix position */
   height: 100dvh; 
   width: 100%;
-  margin: 0; padding: 0;
+  position: fixed; /* Prevents scrolling and viewport recalculation */
+  top: 0; left: 0; right: 0; bottom: 0;
   
+  margin: 0; padding: 0;
   background: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font-stack);
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
-  
-  /* Prevent rubber-banding on iOS */
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
 }
 
 .app {
@@ -44,8 +42,7 @@ html, body {
   background-color: #000;
   background-size: cover;
   background-repeat: no-repeat;
-  /* CRITICAL FIX: Anchor to bottom center */
-  background-position: center bottom;
+  background-position: center bottom; /* Anchor to bottom for consistency */
 }
 
 .homescreen { z-index: 1; }
@@ -61,12 +58,13 @@ html, body {
   transform: scale(1.08); 
 }
 
-/* --- RESULTS --- */
+/* --- RESULTS (History & Magic) --- */
 .magic-result, .history-result {
   position: absolute; bottom: 50px;
   font-size: 15px; font-weight: 500;
   color: rgba(255, 255, 255, 0.3);
   pointer-events: none; letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 .magic-result { right: 30px; text-align: right; }
 .history-result { left: 30px; text-align: left; white-space: pre-wrap; }
@@ -75,7 +73,6 @@ html, body {
 .content-wrapper {
   flex: 1; display: flex; flex-direction: column; 
   justify-content: flex-end; align-items: center;
-  /* Push keypad up slightly from bottom */
   padding-bottom: 12vh; 
 }
 
@@ -108,22 +105,21 @@ html, body {
 
 .key {
   width: 78px; height: 78px; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  
+  /* LIQUID GLASS ENHANCEMENT */
+  background: var(--key-bg-base); /* rgba(255, 255, 255, 0.12) */
+  backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; transition: background 0.15s;
 }
-.key:active { background: rgba(255, 255, 255, 0.35); }
+.key:active { background: var(--key-pressed); }
 
 .key-digit { font-size: 32px; font-weight: 400; line-height: 1; margin-bottom: 2px; }
 .key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; }
-.key.empty { background: transparent; backdrop-filter: none; }
-
-.cancel-btn { 
-  font-size: 16px; font-weight: 600; color: #fff; 
-  margin-top: 20px; opacity: 0; transition: opacity 0.2s; 
-}
-.cancel-btn.visible { opacity: 1; }
+.key.empty { background: transparent; backdrop-filter: none; border: none; box-shadow: none; }
 
 /* --- FOOTER BANNER --- */
 .lock-footer-banner {
@@ -131,7 +127,6 @@ html, body {
   height: 90px;
   display: flex; align-items: flex-start; justify-content: space-between; 
   padding: 20px 40px;
-  /* Safe area handling */
   padding-bottom: max(20px, env(safe-area-inset-bottom));
 }
 .footer-button { font-size: 16px; font-weight: 600; color: #fff; opacity: 0.9; cursor: pointer; }
@@ -157,6 +152,8 @@ html, body {
   overflow: hidden;
   padding: 20px;
   transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  max-height: 90%;
+  overflow-y: auto;
 }
 .settings-overlay.visible .settings-sheet { transform: translateY(0); }
 
@@ -205,7 +202,7 @@ html, body {
 /* Guide Text */
 .guide-text { font-size: 14px; line-height: 1.5; color: var(--text-secondary); padding: 0 10px; }
 .guide-text strong { color: #fff; font-weight: 600; }
-.guide-row { display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.guide-row { display: flex; flex-direction: column; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
 /* Action Button */
 .close-action {
