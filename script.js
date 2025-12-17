@@ -107,7 +107,6 @@ function attemptUnlock() {
   if (currentErrors < forcedErrors) {
     currentErrors++;
     let resultText = enteredCode;
-    // 1st Error: Reveal Star Sign (DDMMYY)
     if (currentErrors === 1) {
       const d = parseInt(enteredCode.substring(0, 2), 10);
       const m = parseInt(enteredCode.substring(2, 4), 10);
