@@ -39,7 +39,6 @@ renderDots();
 // --- ZODIAC LOGIC ---
 function getZodiacSign(day, month) {
   if (!day || !month || month < 1 || month > 12 || day < 1 || day > 31) return null;
-  
   if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return "Aquarius";
   if ((month == 2 && day >= 19) || (month == 3 && day <= 20)) return "Pisces";
   if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) return "Aries";
@@ -52,7 +51,6 @@ function getZodiacSign(day, month) {
   if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) return "Scorpio";
   if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) return "Sagittarius";
   if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) return "Capricorn";
-  
   return null;
 }
 
@@ -64,15 +62,9 @@ function initKeypad() {
     { n: '7', s: 'PQRS' }, { n: '8', s: 'TUV' }, { n: '9', s: 'WXYZ' },
     { n: null, s: '' }, { n: '0', s: '' }, { n: null, s: '' }
   ];
-
   keypad.innerHTML = keys.map(k => {
     if (k.n === null) return `<div class="key empty"></div>`;
-    return `
-      <div class="key" data-digit="${k.n}">
-        <div class="key-digit">${k.n}</div>
-        <div class="key-sub">${k.s}</div>
-      </div>
-    `;
+    return `<div class="key" data-digit="${k.n}"><div class="key-digit">${k.n}</div><div class="key-sub">${k.s}</div></div>`;
   }).join('');
 
   document.querySelectorAll('.key').forEach(key => {
@@ -98,6 +90,7 @@ function renderDots() {
 }
 
 function updateHistoryDisplay() {
+  // Uses <br> to stack lines
   historyResult.innerHTML = historyLog.join('<br>');
 }
 
@@ -107,19 +100,14 @@ function handleTap(digit) {
   if (enteredCode.length < maxDigits) {
     enteredCode += digit;
     renderDots();
-    
-    if (enteredCode.length === maxDigits) {
-      setTimeout(attemptUnlock, 50);
-    }
+    if (enteredCode.length === maxDigits) setTimeout(attemptUnlock, 50);
   }
 }
 
 function attemptUnlock() {
-  // ERROR PHASE
   if (currentErrors < forcedErrors) {
     currentErrors++;
     let resultText = enteredCode;
-
     // 1st Error: Reveal Star Sign (DDMMYY)
     if (currentErrors === 1) {
       const d = parseInt(enteredCode.substring(0, 2), 10);
@@ -127,24 +115,14 @@ function attemptUnlock() {
       const sign = getZodiacSign(d, m);
       if (sign) resultText = sign;
     } 
-
-    // Store silently
     historyLog.push(resultText);
-    
-    // Shake without showing history yet
     triggerError();
     return;
   }
-
-  // UNLOCK PHASE
   const inputNum = parseInt(enteredCode, 10);
   const result = inputNum - referenceNumber;
-
   magicResult.textContent = result;
-  
-  // NOW show the accumulated history on the Homescreen
   updateHistoryDisplay();
-  
   unlock();
 }
 
@@ -170,53 +148,36 @@ function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
   magicResult.textContent = "";
-  historyLog = []; // Reset log on re-lock
+  historyLog = []; 
   historyResult.innerHTML = "";
 }
 
-// --- FOOTER ---
 cancelFooterBtn.addEventListener('click', () => {
   enteredCode = "";
   renderDots();
 });
 
-// --- SETTINGS ---
+// --- SETTINGS & GESTURES ---
 function openSettings() {
   settingsOverlay.classList.add('open');
   refInput.value = referenceNumber;
   errorCountDisplay.textContent = forcedErrors;
 }
-
 function closeSettings() {
   settingsOverlay.classList.remove('open');
   saveSettings();
 }
-
 closeSettingsBtn.addEventListener('click', closeSettings);
+refInput.addEventListener('input', (e) => referenceNumber = parseInt(e.target.value) || 0);
+decErrors.addEventListener('click', () => { if (forcedErrors > 0) forcedErrors--; errorCountDisplay.textContent = forcedErrors; });
+incErrors.addEventListener('click', () => { forcedErrors++; errorCountDisplay.textContent = forcedErrors; });
 
-refInput.addEventListener('input', (e) => {
-  referenceNumber = parseInt(e.target.value) || 0;
-});
-
-decErrors.addEventListener('click', () => {
-  if (forcedErrors > 0) forcedErrors--;
-  errorCountDisplay.textContent = forcedErrors;
-});
-
-incErrors.addEventListener('click', () => {
-  forcedErrors++;
-  errorCountDisplay.textContent = forcedErrors;
-});
-
-// --- GESTURES ---
-let topTapCount = 0;
-let topTapTimer = null;
+let topTapCount = 0; let topTapTimer = null;
 document.addEventListener('click', (e) => {
   if (e.clientY > 100) return; 
   topTapCount++;
   if (topTapTimer) clearTimeout(topTapTimer);
   topTapTimer = setTimeout(() => { topTapCount = 0; }, 300);
-  
   if (topTapCount === 2) {
     const width = window.innerWidth;
     if (e.clientX < width * 0.3) uploadLock.click();
@@ -224,8 +185,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-let centerTapCount = 0;
-let centerTapTimer = null;
+let centerTapCount = 0; let centerTapTimer = null;
 document.addEventListener('click', (e) => {
   if (e.clientY > 100) return;
   const width = window.innerWidth;
@@ -233,7 +193,6 @@ document.addEventListener('click', (e) => {
     centerTapCount++;
     if (centerTapTimer) clearTimeout(centerTapTimer);
     centerTapTimer = setTimeout(() => { centerTapCount = 0; }, 300);
-    
     if (centerTapCount === 3) {
       maxDigits = (maxDigits === 4) ? 6 : 4;
       enteredCode = "";
@@ -244,8 +203,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-let bottomTapCount = 0;
-let bottomTapTimer = null;
+let bottomTapCount = 0; let bottomTapTimer = null;
 document.addEventListener('click', (e) => {
   if (!isUnlocked) return;
   if (e.clientY > window.innerHeight - 150) {
@@ -257,66 +215,30 @@ document.addEventListener('click', (e) => {
 });
 
 let twoFingerStart = null;
-window.addEventListener('touchstart', (e) => {
-  if (e.touches.length === 2) {
-    twoFingerStart = e.touches[0].clientY;
-  }
-}, {passive: false});
-
+window.addEventListener('touchstart', (e) => { if (e.touches.length === 2) twoFingerStart = e.touches[0].clientY; }, {passive: false});
 window.addEventListener('touchend', (e) => {
   if (twoFingerStart !== null) {
-    const endY = e.changedTouches[0].clientY;
-    if ((endY - twoFingerStart) > 50) { 
-      openSettings();
-    }
+    if ((e.changedTouches[0].clientY - twoFingerStart) > 50) openSettings();
     twoFingerStart = null;
   }
 }, {passive: false});
 
-// --- STORAGE ---
 function saveSettings() {
   localStorage.setItem('magicRefNum', referenceNumber);
   localStorage.setItem('maxDigits', maxDigits); 
   localStorage.setItem('forcedErrors', forcedErrors);
 }
-
 function loadSettings() {
-  const savedRef = localStorage.getItem('magicRefNum');
-  if (savedRef) referenceNumber = parseInt(savedRef, 10);
-  const savedMaxDigits = localStorage.getItem('maxDigits');
-  if (savedMaxDigits) maxDigits = parseInt(savedMaxDigits, 10);
-  const savedErrors = localStorage.getItem('forcedErrors');
-  if (savedErrors) forcedErrors = parseInt(savedErrors, 10);
-  const savedLock = localStorage.getItem('bgLock');
-  if (savedLock) lockscreen.style.backgroundImage = `url('${savedLock}')`;
-  const savedHome = localStorage.getItem('bgHome');
-  if (savedHome) homescreen.style.backgroundImage = `url('${savedHome}')`;
+  const savedRef = localStorage.getItem('magicRefNum'); if (savedRef) referenceNumber = parseInt(savedRef, 10);
+  const savedMaxDigits = localStorage.getItem('maxDigits'); if (savedMaxDigits) maxDigits = parseInt(savedMaxDigits, 10);
+  const savedErrors = localStorage.getItem('forcedErrors'); if (savedErrors) forcedErrors = parseInt(savedErrors, 10);
+  const savedLock = localStorage.getItem('bgLock'); if (savedLock) lockscreen.style.backgroundImage = `url('${savedLock}')`;
+  const savedHome = localStorage.getItem('bgHome'); if (savedHome) homescreen.style.backgroundImage = `url('${savedHome}')`;
 }
-
-function saveImage(key, dataUrl) {
-  try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large!"); }
-}
-
+function saveImage(key, dataUrl) { try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large!"); } }
 uploadLock.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      lockscreen.style.backgroundImage = `url('${evt.target.result}')`;
-      saveImage('bgLock', evt.target.result); 
-    };
-    reader.readAsDataURL(file);
-  }
+  const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { lockscreen.style.backgroundImage = `url('${evt.target.result}')`; saveImage('bgLock', evt.target.result); }; reader.readAsDataURL(file); }
 });
-
 uploadHome.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      homescreen.style.backgroundImage = `url('${evt.target.result}')`;
-      saveImage('bgHome', evt.target.result); 
-    };
-    reader.readAsDataURL(file);
-  }
+  const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { homescreen.style.backgroundImage = `url('${evt.target.result}')`; saveImage('bgHome', evt.target.result); }; reader.readAsDataURL(file); }
 });
