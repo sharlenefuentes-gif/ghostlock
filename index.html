@@ -3,29 +3,38 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1" />
+  
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Magic Lock">
+
+  <link rel="manifest" href="manifest.json">
   
-  <title>Magic Lock</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png"> 
+  
+  <title>Magic Lockscreen</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app">
     
     <main class="homescreen" id="homescreen">
-      <div id="historyResult" class="history-result"></div>
       <div id="magicResult" class="magic-result"></div>
     </main>
 
     <main class="lockscreen" id="lockscreen">
+      <div class="status-bar-spacer"></div>
+
       <div class="content-wrapper">
         <div class="passcode-panel" id="panel">
           <div class="prompt" id="promptText">Enter Passcode</div>
           <div class="dots" id="dots"></div>
           <div class="keypad" id="keypad"></div>
-          <div class="cancel-btn" id="cancelBtn">Cancel</div>
+          <div class="cancel-btn" id="cancelBtn" style="display:none;"></div>
         </div>
       </div>
+
       <div class="lock-footer-banner">
         <div class="footer-button" id="emergencyBtn">Emergency</div>
         <div class="footer-button" id="cancelFooterBtn">Cancel</div>
@@ -34,52 +43,7 @@
 
     <div id="settingsOverlay" class="settings-overlay">
       <div class="settings-sheet">
-        
-        <div class="menu-tabs">
-          <div class="tab-btn active" onclick="switchTab('config')">Settings</div>
-          <div class="tab-btn" onclick="switchTab('guide')">Guide</div>
-        </div>
-
-        <div id="tab-config" class="menu-section active">
-          <div class="list-group">
-            <div class="list-item">
-              <span class="label">Reference Code</span>
-              <input type="number" id="refInput" class="clean-input" placeholder="4050" pattern="[0-9]*" inputmode="numeric">
-            </div>
-            
-            <div class="list-item">
-              <span class="label">Forced Errors</span>
-              <div class="value">
-                <button class="stepper-btn" id="decErrors">−</button>
-                <span id="errorCountDisplay" style="width: 20px; text-align: center; color: #fff;">0</span>
-                <button class="stepper-btn" id="incErrors">+</button>
-              </div>
-            </div>
-          </div>
-          <p class="credits-sub">Configure how many times the lock shakes before opening.</p>
-        </div>
-
-        <div id="tab-guide" class="menu-section">
-          <div class="guide-text">
-            <div class="guide-row">
-              <span><strong>Background Setup</strong><br>Double-tap top corners to upload images (Left for Lock, Right for Home).</span>
-            </div>
-            <div class="guide-row">
-              <span><strong>Digit Length</strong><br>Triple-tap the top-center to toggle 4 or 6 digit passcode.</span>
-            </div>
-            <div class="guide-row">
-              <span><strong>Quick Re-Lock</strong><br>Triple-tap bottom-center on homescreen to lock instantly.</span>
-            </div>
-            <div class="guide-row" style="border:none">
-              <span><strong>Access Menu</strong><br>Swipe down with two fingers anywhere on screen.</span>
-            </div>
-          </div>
-        </div>
-
-        <button id="closeSettingsBtn" class="close-action">Done</button>
-        <div class="credits-sub">Designed by James Seth Capacite</div>
-
-      </div>
+         </div>
     </div>
 
     <input id="uploadLock" type="file" accept="image/*" style="display: none" />
@@ -88,20 +52,12 @@
   </div>
   
   <script src="script.js"></script>
+  
   <script>
-    function switchTab(tabName) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
-      
-      if(tabName === 'config') {
-        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-        document.getElementById('tab-config').classList.add('active');
-      } else {
-        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-        document.getElementById('tab-guide').classList.add('active');
-      }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('Service Worker Registered'));
     }
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
   </script>
 </body>
 </html>
