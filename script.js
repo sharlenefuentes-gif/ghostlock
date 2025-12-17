@@ -3,6 +3,7 @@ let maxDigits = 6;
 let referenceNumber = 4050; 
 let forcedErrors = 0; 
 let notesMode = false;
+let ghostMode = false; 
 let spectatorName = "Someone";
 
 // --- STATE ---
@@ -10,12 +11,13 @@ let enteredCode = "";
 let isUnlocked = false;
 let currentErrors = 0; 
 let historyLog = [];
-let detectedZodiac = null; // Changed to null by default
+let detectedZodiac = null;
+let ghostTapCount = 0; 
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
 const homescreen = document.getElementById('homescreen');
-const wallpaperImg = document.getElementById('wallpaperImg'); // THE IMAGE TAG
+const wallpaperImg = document.getElementById('wallpaperImg');
 
 const panel = document.getElementById('panel'); 
 const dotsContainer = document.getElementById('dots');
@@ -44,6 +46,7 @@ const refInput = document.getElementById('refInput');
 const lenInput = document.getElementById('lenInput');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const notesToggle = document.getElementById('notesToggle');
+const ghostToggle = document.getElementById('ghostToggle'); 
 const nameInputRow = document.getElementById('nameInputRow');
 const notesUploadRow = document.getElementById('notesUploadRow');
 const spectatorNameInput = document.getElementById('spectatorName');
@@ -57,6 +60,30 @@ loadSettings();
 initLockKeypad();
 initDialerKeypad();
 renderDots();
+
+// --- GHOST UNLOCK LOGIC ---
+// Listens for ANY touch on the screen
+document.addEventListener('touchstart', (e) => {
+  if (isUnlocked || !ghostMode) return;
+  if (settingsOverlay.classList.contains('open')) return;
+  if (dialerScreen.classList.contains('active')) return;
+
+  ghostTapCount++;
+  
+  // If this is the 6th tap (or more), CHECK TARGET
+  if (ghostTapCount >= 6) {
+    // Check if the touch target is inside a keypad key
+    if (e.target.closest('.key')) {
+        e.preventDefault(); 
+        e.stopPropagation();
+        ghostTapCount = 0;
+        setTimeout(attemptUnlock, 50); // Ghost Unlock
+    } else {
+        // If they tapped background on the 6th tap, 
+        // we do nothing (count keeps going up, waiting for a key press)
+    }
+  }
+}, {capture: true});
 
 // --- ZODIAC LOGIC ---
 function getZodiacSign(day, month) {
@@ -108,16 +135,12 @@ function attachKeyEvents(container, handler) {
   container.querySelectorAll('.key').forEach(key => {
     if (key.classList.contains('empty')) return;
     key.addEventListener('touchstart', (e) => {
-      e.preventDefault(); 
+      // Don't prevent default, allow global listener to inspect
       const digit = key.getAttribute('data-digit');
       handler(digit);
       key.classList.add('active');
       setTimeout(() => key.classList.remove('active'), 100);
-    }, { passive: false });
-    key.addEventListener('click', (e) => {
-      const digit = key.getAttribute('data-digit');
-      handler(digit);
-    });
+    }, { passive: true });
   });
 }
 
@@ -146,8 +169,11 @@ function handleDialerTap(digit) {
 }
 
 function attemptUnlock() {
-  // ERROR PHASE
-  if (currentErrors < forcedErrors) {
+  // If Ghost Mode is Active and we have tapped 6+ times, we skip validation
+  const isGhostTrigger = (ghostMode && ghostTapCount >= 6);
+
+  // Standard Error Check (only if NOT ghost triggered)
+  if (!isGhostTrigger && enteredCode.length === maxDigits && currentErrors < forcedErrors) {
     currentErrors++;
     let resultText = enteredCode;
     
@@ -167,32 +193,36 @@ function attemptUnlock() {
   }
   
   // UNLOCK PHASE
-  const inputNum = parseInt(enteredCode, 10);
-  const result = inputNum - referenceNumber;
-  
+  let result = 0;
+  // If ghost triggered with empty code, we just do Ref Number? 
+  // Or if they typed 1 digit (the ghost trigger digit), we use that?
+  // Let's rely on calculating based on enteredCode if it exists, otherwise 0.
+  const inputNum = enteredCode ? parseInt(enteredCode, 10) : 0;
+  result = inputNum - referenceNumber;
+
   if (notesMode) {
     magicResult.style.display = 'none';
     historyResult.style.display = 'none'; 
     notesContent.classList.add('active');
     
-    // --- MYSTERIOUS / INTIMATE SCRIPT ---
-    let time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    // --- UPDATED SCRIPT ---
+    let htmlContent = `<span class="note-header">Intuition Log</span>`;
     
-    // Base Header
-    let script = `${time}\nPersonal Intuition Log\n\n`;
+    htmlContent += `Earlier today, someone came to mind.\n\n`;
+    htmlContent += `I couldn’t tell if it was someone I already knew\nor someone I hadn’t met yet.\n\n`;
+    htmlContent += `The feeling stayed.\n\n`;
+    htmlContent += `A name surfaced.\n`;
+    htmlContent += `${spectatorName}\n\n`;
     
-    // The Person
-    script += `I sense a strong connection tonight with ${spectatorName}.\n\n`;
-    
-    // The Zodiac (Only if detected)
     if (detectedZodiac) {
-      script += `There is a distinct ${detectedZodiac} energy guiding this moment.\n\n`;
+      htmlContent += `Along with a personality that felt much of a ${detectedZodiac}.\n\n`;
     }
     
-    // The Prediction
-    script += `The code locked in their mind is ${result}.`;
+    htmlContent += `Then a number followed.\nNot random.\n\n`;
+    htmlContent += `${result}\n\n`;
+    htmlContent += `Intuition or not, still amazes me.`;
     
-    notesContent.textContent = script;
+    notesContent.innerHTML = htmlContent;
     
   } else {
     magicResult.style.display = 'block';
@@ -221,7 +251,8 @@ function unlock() {
   enteredCode = "";
   renderDots();
   currentErrors = 0; 
-  updateWallpaper(); // Ensure BG is correct for Unlocked State
+  ghostTapCount = 0; 
+  updateWallpaper(); 
 }
 
 function reLock() {
@@ -232,7 +263,8 @@ function reLock() {
   historyLog = [];
   historyResult.innerHTML = "";
   detectedZodiac = null; 
-  updateWallpaper(); // Reset to Lock Screen BG
+  ghostTapCount = 0; 
+  updateWallpaper(); 
 }
 
 // --- BUTTONS ---
@@ -257,6 +289,7 @@ function openSettings() {
   refInput.value = referenceNumber;
   lenInput.value = maxDigits;
   notesToggle.checked = notesMode;
+  ghostToggle.checked = ghostMode;
   spectatorNameInput.value = spectatorName;
   errorCountDisplay.textContent = forcedErrors;
   toggleNameInput();
@@ -264,12 +297,14 @@ function openSettings() {
 function closeSettings() {
   settingsOverlay.classList.remove('open');
   saveSettings();
-  updateWallpaper(); // Apply BG changes immediately
+  updateWallpaper();
 }
 closeSettingsBtn.addEventListener('click', closeSettings);
 
-// Toggles & Inputs
+// Toggles
 notesToggle.addEventListener('change', () => { notesMode = notesToggle.checked; toggleNameInput(); });
+ghostToggle.addEventListener('change', () => { ghostMode = ghostToggle.checked; });
+
 function toggleNameInput() { 
   nameInputRow.style.display = notesMode ? 'flex' : 'none'; 
   notesUploadRow.style.display = notesMode ? 'flex' : 'none'; 
@@ -317,6 +352,7 @@ function saveSettings() {
   localStorage.setItem('magicRefNum', referenceNumber);
   localStorage.setItem('maxDigits', maxDigits); 
   localStorage.setItem('notesMode', notesMode);
+  localStorage.setItem('ghostMode', ghostMode);
   localStorage.setItem('spectatorName', spectatorName);
   localStorage.setItem('forcedErrors', forcedErrors);
 }
@@ -324,6 +360,7 @@ function loadSettings() {
   const savedRef = localStorage.getItem('magicRefNum'); if (savedRef) referenceNumber = parseInt(savedRef, 10);
   const savedMaxDigits = localStorage.getItem('maxDigits'); if (savedMaxDigits) maxDigits = parseInt(savedMaxDigits, 10);
   const savedNotes = localStorage.getItem('notesMode'); if (savedNotes !== null) notesMode = (savedNotes === 'true');
+  const savedGhost = localStorage.getItem('ghostMode'); if (savedGhost !== null) ghostMode = (savedGhost === 'true');
   const savedName = localStorage.getItem('spectatorName'); if (savedName) spectatorName = savedName;
   const savedErrors = localStorage.getItem('forcedErrors'); if (savedErrors) forcedErrors = parseInt(savedErrors, 10);
   
@@ -337,14 +374,10 @@ function updateWallpaper() {
   const savedNotesBG = localStorage.getItem('bgNotes');
   
   if (!isUnlocked) {
-    // LOCKSCREEN STATE
-    if (savedLock) {
-      wallpaperImg.src = savedLock;
-    } else {
-      wallpaperImg.src = ""; // Or a default black image
-    }
+    // LOCKSCREEN
+    wallpaperImg.src = savedLock || "";
   } else {
-    // HOMESCREEN STATE
+    // HOMESCREEN
     if (notesMode && savedNotesBG) {
       wallpaperImg.src = savedNotesBG;
     } else if (savedHome) {
