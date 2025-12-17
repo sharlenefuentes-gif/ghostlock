@@ -17,7 +17,6 @@ const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');
 const historyResult = document.getElementById('historyResult'); 
-// Note: Inner cancelBtn removed from HTML
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 
 // Upload Inputs
@@ -43,12 +42,10 @@ function initKeypad() {
     { n: '1', s: '' }, { n: '2', s: 'ABC' }, { n: '3', s: 'DEF' },
     { n: '4', s: 'GHI' }, { n: '5', s: 'JKL' }, { n: '6', s: 'MNO' },
     { n: '7', s: 'PQRS' }, { n: '8', s: 'TUV' }, { n: '9', s: 'WXYZ' },
-    // Empty | 0 | Empty
     { n: null, s: '' }, { n: '0', s: '' }, { n: null, s: '' }
   ];
 
   keypad.innerHTML = keys.map(k => {
-    // .empty class combined with CSS visibility:hidden handles the ghosting
     if (k.n === null) return `<div class="key empty"></div>`;
     return `
       <div class="key" onclick="handleTap('${k.n}')">
@@ -123,7 +120,6 @@ function reLock() {
 // --- FOOTER BUTTONS ---
 cancelFooterBtn.addEventListener('click', () => {
   if (enteredCode.length > 0) {
-    // If typing, it acts as backspace/clear
     enteredCode = "";
     renderDots();
   }
@@ -158,7 +154,6 @@ incErrors.addEventListener('click', () => {
 });
 
 // --- GESTURES ---
-
 // 1. Double Tap (Top Corners)
 let topTapCount = 0;
 let topTapTimer = null;
@@ -178,7 +173,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 2. Triple Tap (Top Center for Code Length)
+// 2. Triple Tap (Top Center)
 let centerTapCount = 0;
 let centerTapTimer = null;
 document.addEventListener('click', (e) => {
@@ -212,7 +207,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 4. Two-Finger Swipe Down (Settings)
+// 4. Two-Finger Swipe Down
 let twoFingerStart = null;
 window.addEventListener('touchstart', (e) => {
   if (e.touches.length === 2) {
