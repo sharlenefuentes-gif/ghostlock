@@ -2,193 +2,215 @@
   --font-stack: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --bg-color: #000;
   --text-color: #fff;
-
-  --key-bg-base: rgba(255, 255, 255, 0.12);
-  --key-pressed: rgba(255, 255, 255, 0.35);
+  
+  /* Modern iOS 18+ Color Tokens */
+  --glass-material: rgba(30, 30, 30, 0.65);
   --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.08);
   --accent-blue: #0A84FF;
+  --danger-red: #FF453A;
   --text-secondary: rgba(235, 235, 245, 0.6);
 }
 
-* {
-  box-sizing: border-box;
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-user-select: none;
-}
+* { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
-html,
-body {
+html, body {
+  /* CRITICAL FIX: Use Dynamic Viewport Height to prevent shifting */
+  height: 100dvh; 
   width: 100%;
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
+  
   background: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font-stack);
+  overflow: hidden;
   -webkit-tap-highlight-color: transparent;
+  
+  /* Prevent rubber-banding on iOS */
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
 }
 
-/* 🔒 REAL LAYOUT LOCK (not html/body) */
 .app {
-  position: fixed;
-  inset: 0;
+  position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
 }
 
-/* --- BACKGROUNDS --- */
-.homescreen,
-.lockscreen {
-  position: absolute;
-  inset: 0;
+/* --- BACKGROUND LAYERS --- */
+.homescreen, .lockscreen {
+  position: absolute; top: 0; left: 0; 
+  width: 100%; height: 100%; 
+  background-color: #000;
   background-size: cover;
-  background-position: center bottom;
   background-repeat: no-repeat;
+  /* CRITICAL FIX: Anchor to bottom center */
+  background-position: center bottom;
 }
 
 .homescreen { z-index: 1; }
-
-.lockscreen {
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  transition: opacity 0.4s ease, transform 0.4s ease;
+.lockscreen { 
+  z-index: 10; 
+  display: flex; flex-direction: column; 
+  transition: opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.lockscreen.unlocked {
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(1.08);
+.lockscreen.unlocked { 
+  opacity: 0; 
+  pointer-events: none; 
+  transform: scale(1.08); 
 }
 
 /* --- RESULTS --- */
-.magic-result,
-.history-result {
-  position: absolute;
-  bottom: calc(30px + env(safe-area-inset-bottom));
-  font-size: 15px;
-  color: rgba(255,255,255,0.3);
-  pointer-events: none;
+.magic-result, .history-result {
+  position: absolute; bottom: 50px;
+  font-size: 15px; font-weight: 500;
+  color: rgba(255, 255, 255, 0.3);
+  pointer-events: none; letter-spacing: 0.5px;
 }
-
-.magic-result { right: 30px; }
-.history-result { left: 30px; white-space: pre-wrap; }
+.magic-result { right: 30px; text-align: right; }
+.history-result { left: 30px; text-align: left; white-space: pre-wrap; }
 
 /* --- PASSCODE UI --- */
 .content-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-
-  /* ✅ SAFE, STABLE */
-  padding-bottom: calc(120px + env(safe-area-inset-bottom));
+  flex: 1; display: flex; flex-direction: column; 
+  justify-content: flex-end; align-items: center;
+  /* Push keypad up slightly from bottom */
+  padding-bottom: 12vh; 
 }
 
-.passcode-panel {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+.passcode-panel { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
-/* Shake */
+/* Animation: iOS Shake */
 @keyframes shake {
-  0%,100%{transform:translateX(0)}
-  15%{transform:translateX(-14px)}
-  30%{transform:translateX(12px)}
-  45%{transform:translateX(-10px)}
-  60%{transform:translateX(8px)}
-  75%{transform:translateX(-4px)}
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-14px); }
+  30% { transform: translateX(12px); }
+  45% { transform: translateX(-10px); }
+  60% { transform: translateX(8px); }
+  75% { transform: translateX(-4px); }
 }
-.passcode-panel.shake { animation: shake .5s ease; }
+.passcode-panel.shake { animation: shake 0.5s ease-in-out; }
 
-.prompt {
-  font-size: 20px;
-  margin-bottom: 28px;
-}
+.prompt { font-size: 20px; font-weight: 500; margin-bottom: 28px; letter-spacing: 0.4px; }
 
-.dots {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 40px;
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 1px solid #fff;
+.dots { display: flex; gap: 24px; margin-bottom: 40px; height: 12px; }
+.dot { 
+  width: 12px; height: 12px; border-radius: 50%; 
+  border: 1px solid #fff; transition: background 0.2s; 
 }
 .dot.filled { background: #fff; }
 
-/* --- KEYPAD (LIQUID GLASS) --- */
-.keypad {
-  display: grid;
-  grid-template-columns: repeat(3, 78px);
-  gap: 22px;
-  margin-bottom: 20px;
+.keypad { 
+  display: grid; grid-template-columns: repeat(3, 78px); 
+  gap: 22px; justify-content: center; margin-bottom: 20px; 
 }
 
 .key {
-  width: 78px;
-  height: 78px;
-  border-radius: 50%;
-  background: var(--key-bg-base);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 6px 14px rgba(0,0,0,.35);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  width: 78px; height: 78px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s;
 }
-.key:active { background: var(--key-pressed); }
+.key:active { background: rgba(255, 255, 255, 0.35); }
 
-.key-digit { font-size: 32px; }
-.key-sub { font-size: 9px; letter-spacing: 2px; opacity: .6; }
+.key-digit { font-size: 32px; font-weight: 400; line-height: 1; margin-bottom: 2px; }
+.key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; }
+.key.empty { background: transparent; backdrop-filter: none; }
 
-.key.empty {
-  background: transparent;
-  border: none;
-  box-shadow: none;
+.cancel-btn { 
+  font-size: 16px; font-weight: 600; color: #fff; 
+  margin-top: 20px; opacity: 0; transition: opacity 0.2s; 
 }
+.cancel-btn.visible { opacity: 1; }
 
-/* --- FOOTER --- */
+/* --- FOOTER BANNER --- */
 .lock-footer-banner {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: calc(90px + env(safe-area-inset-bottom));
-  padding: 0 40px env(safe-area-inset-bottom);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  position: absolute; bottom: 0; left: 0; width: 100%; 
+  height: 90px;
+  display: flex; align-items: flex-start; justify-content: space-between; 
+  padding: 20px 40px;
+  /* Safe area handling */
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
 }
+.footer-button { font-size: 16px; font-weight: 600; color: #fff; opacity: 0.9; cursor: pointer; }
 
-.footer-button {
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
-  opacity: .9;
-}
-
-/* --- SETTINGS OVERLAY --- */
+/* --- MODERN MENU (SETTINGS) --- */
 .settings-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 100;
-  background: rgba(0,0,0,.4);
-  backdrop-filter: blur(15px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .3s;
+  position: absolute; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  display: flex; justify-content: center; align-items: flex-end;
 }
-.settings-overlay.visible {
-  opacity: 1;
-  pointer-events: auto;
+.settings-overlay.visible { opacity: 1; pointer-events: auto; }
+
+/* The Sheet/Card */
+.settings-sheet {
+  width: 94%; max-width: 400px; margin-bottom: 20px;
+  background: rgba(28, 28, 30, 0.85);
+  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border-radius: 28px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  overflow: hidden;
+  padding: 20px;
+  transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
 }
+.settings-overlay.visible .settings-sheet { transform: translateY(0); }
+
+/* Tab Switcher (Segmented Control) */
+.menu-tabs {
+  display: flex; background: rgba(118, 118, 128, 0.24);
+  border-radius: 9px; padding: 2px; margin-bottom: 20px;
+}
+.tab-btn {
+  flex: 1; text-align: center; padding: 6px; font-size: 13px; font-weight: 600;
+  border-radius: 7px; color: var(--text-secondary); cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-btn.active { background: rgba(99, 99, 102, 0.5); color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
+
+/* Content Sections */
+.menu-section { display: none; animation: fadeIn 0.3s; }
+.menu-section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* List Groups (iOS Style) */
+.list-group {
+  background: rgba(255,255,255,0.05); border-radius: 12px; 
+  overflow: hidden; margin-bottom: 15px;
+}
+.list-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.list-item:last-child { border-bottom: none; }
+
+.label { font-size: 15px; font-weight: 500; }
+.value { font-size: 15px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; }
+
+/* Inputs & Steppers */
+.stepper-btn {
+  width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2);
+  background: transparent; color: #fff; font-size: 18px; line-height: 1;
+}
+.clean-input {
+  background: transparent; border: none; color: var(--accent-blue);
+  font-size: 16px; font-weight: 600; text-align: right; width: 80px;
+}
+.clean-input:focus { outline: none; border-bottom: 1px solid var(--accent-blue); }
+
+/* Guide Text */
+.guide-text { font-size: 14px; line-height: 1.5; color: var(--text-secondary); padding: 0 10px; }
+.guide-text strong { color: #fff; font-weight: 600; }
+.guide-row { display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+/* Action Button */
+.close-action {
+  background: var(--accent-blue); color: white; border: none;
+  width: 100%; padding: 14px; border-radius: 14px;
+  font-size: 16px; font-weight: 600; margin-top: 10px;
+}
+.credits-sub { text-align: center; font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 15px; }
