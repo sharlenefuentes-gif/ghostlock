@@ -3,7 +3,6 @@
   --bg-color: #000;
   --text-color: #fff;
   
-  /* Liquid Glass Tokens */
   --glass-surface: rgba(255, 255, 255, 0.08);
   --glass-border-top: rgba(255, 255, 255, 0.35);
   --glass-border-bottom: rgba(255, 255, 255, 0.05);
@@ -15,7 +14,6 @@
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  /* CROP FIX: Use 100dvh for dynamic height (ignores URL bar) */
   height: 100dvh; 
   width: 100%;
   margin: 0; padding: 0;
@@ -33,18 +31,13 @@ html, body {
 /* --- MAINS --- */
 main {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  
-  /* CROP FIX: Anchor images to BOTTOM so keypad never cuts off */
   background-size: cover; 
   background-position: center bottom; 
   background-repeat: no-repeat;
-  
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.homescreen {
-  z-index: 1; display: block; 
-}
+.homescreen { z-index: 1; display: block; }
 
 /* Bottom Right: Magic Unlock Number */
 .magic-result {
@@ -54,12 +47,21 @@ main {
   text-shadow: 0 1px 2px rgba(0,0,0,0.5); pointer-events: none;
 }
 
-/* Bottom Left: Star Sign / History */
+/* Bottom Right: History (Stacks Upwards) */
 .history-result {
-  position: absolute; bottom: 40px; left: 30px;
+  position: absolute; 
+  bottom: 80px; /* Above the Footer/Cancel button area */
+  right: 30px;  /* Align to Right side */
+  
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* Right align text */
+  gap: 5px;
+
   font-size: 18px; font-weight: 600;
-  color: rgba(255, 255, 255, 0.6); /* Slightly brighter for visibility */
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5); pointer-events: none;
+  color: rgba(255, 255, 255, 0.6); 
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
+  pointer-events: none;
   font-variant-numeric: tabular-nums;
   text-transform: capitalize;
   transition: opacity 0.3s;
@@ -72,9 +74,14 @@ main {
 .lockscreen.unlocked { transform: translateY(-100%); pointer-events: none; }
 
 .content-wrapper {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  /* Adjust height to account for footer */
-  height: calc(100% - 100px); 
+  display: flex; flex-direction: column; align-items: center; 
+  
+  /* FIX: Push content DOWN to look like real lockscreen */
+  justify-content: flex-end; 
+  padding-bottom: 120px; /* Adjusts how high the keypad sits */
+  
+  height: 100%;
+  width: 100%;
 }
 
 /* --- PASSCODE PANEL --- */
@@ -111,26 +118,19 @@ main {
 
 .key {
   width: 78px; height: 78px; border-radius: 50%;
-  
   background: radial-gradient(ellipse at center, rgba(255,255,255,0.15) 0%, transparent 70%);
   background-color: var(--glass-surface);
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-  
   box-shadow: 
     inset 0 1px 0 0 var(--glass-border-top),
     inset 0 -1px 0 0 var(--glass-border-bottom),
     0 10px 20px rgba(0,0,0,0.1);
-    
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; position: relative;
-  
-  /* RESPONSIVE FIX: Prevent default touch behaviors */
-  touch-action: manipulation; 
-  -webkit-user-select: none;
+  touch-action: manipulation; -webkit-user-select: none;
   transition: transform 0.1s, background 0.1s;
 }
 
-/* JS adds .active class on touchstart */
 .key:active, .key.active {
   transform: scale(0.92);
   background-color: rgba(255, 255, 255, 0.25);
@@ -144,10 +144,9 @@ main {
 /* --- FOOTER --- */
 .lock-footer-banner {
   position: absolute; bottom: 0; left: 0; width: 100%;
-  /* Use padding-bottom for Safe Area (iPhone X+) */
   padding: 0 40px;
   padding-bottom: max(30px, env(safe-area-inset-bottom));
-  height: 100px; /* Tall enough area */
+  height: 100px;
   display: flex; justify-content: space-between; align-items: flex-end;
 }
 .footer-button { font-size: 16px; font-weight: 600; cursor: pointer; color: #fff; padding: 10px;}
@@ -169,12 +168,8 @@ main {
 .settings-overlay.open .settings-sheet { transform: translateY(0); }
 .sheet-header { margin-bottom: 15px; }
 .sheet-title { font-size: 20px; font-weight: 700; }
-.tab-group {
-  display: flex; background: rgba(118, 118, 128, 0.24); padding: 2px; border-radius: 9px; margin-bottom: 20px;
-}
-.tab-btn {
-  flex: 1; background: transparent; border: none; padding: 6px; color: #fff; font-size: 13px; font-weight: 500; border-radius: 7px;
-}
+.tab-group { display: flex; background: rgba(118, 118, 128, 0.24); padding: 2px; border-radius: 9px; margin-bottom: 20px; }
+.tab-btn { flex: 1; background: transparent; border: none; padding: 6px; color: #fff; font-size: 13px; font-weight: 500; border-radius: 7px; }
 .tab-btn.active { background: #636366; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
 .menu-section { display: none; }
 .menu-section.active { display: block; animation: fadeIn 0.2s; }
