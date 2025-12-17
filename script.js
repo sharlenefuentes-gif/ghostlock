@@ -90,7 +90,6 @@ function renderDots() {
 }
 
 function updateHistoryDisplay() {
-  // Uses <br> to stack lines
   historyResult.innerHTML = historyLog.join('<br>');
 }
 
