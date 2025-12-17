@@ -1,25 +1,38 @@
 // --- CONFIGURATION ---
 let maxDigits = 6; 
+let referenceNumber = 4050; 
+let forcedErrors = 0; 
 
 // --- STATE ---
 let enteredCode = "";
-let referenceNumber = 4050; 
 let isUnlocked = false;
+let currentErrors = 0; 
+let failedAttempts = []; 
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
 const homescreen = document.getElementById('homescreen');
+const panel = document.getElementById('panel'); 
+const promptText = document.getElementById('promptText');
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');
-
-// Footer buttons
+const historyResult = document.getElementById('historyResult'); 
+const cancelBtn = document.getElementById('cancelBtn'); 
 const emergencyBtn = document.getElementById('emergencyBtn');
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 
 // Upload Inputs
 const uploadLock = document.getElementById('uploadLock');
 const uploadHome = document.getElementById('uploadHome');
+
+// Settings Elements
+const settingsOverlay = document.getElementById('settingsOverlay');
+const refInput = document.getElementById('refInput');
+const errorCountDisplay = document.getElementById('errorCountDisplay');
+const decErrors = document.getElementById('decErrors');
+const incErrors = document.getElementById('incErrors');
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 
 // --- INITIALIZATION ---
 loadSettings(); 
@@ -32,146 +45,185 @@ function initKeypad() {
     { n: '1', s: '' }, { n: '2', s: 'ABC' }, { n: '3', s: 'DEF' },
     { n: '4', s: 'GHI' }, { n: '5', s: 'JKL' }, { n: '6', s: 'MNO' },
     { n: '7', s: 'PQRS' }, { n: '8', s: 'TUV' }, { n: '9', s: 'WXYZ' },
-    // Bottom Row: Empty, 0, Empty (Removed buttons beside 0)
     { n: null, s: '' }, { n: '0', s: '' }, { n: null, s: '' }
   ];
 
-  keypad.innerHTML = ''; // Clear existing
-  keys.forEach(k => {
-    const btn = document.createElement('div');
-    if (k.n === null) {
-      btn.className = 'key empty'; // Pure empty spacer
-    } else {
-      btn.className = 'key';
-      btn.innerHTML = `<span class="key-digit">${k.n}</span>` + 
-                      (k.s ? `<span class="key-sub">${k.s}</span>` : '');
-      
-      btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(k.n); });
-      btn.addEventListener('click', () => handleInput(k.n));
-    }
-    keypad.appendChild(btn);
-  });
-}
-
-// Footer Cancel/Delete Button Logic
-if (cancelFooterBtn) {
-    cancelFooterBtn.addEventListener('click', () => {
-      // Clear the input on tap to perform "Delete/Cancel" action
-      enteredCode = ""; 
-      renderDots();
-    });
-}
-// Footer Emergency Button Logic
-if (emergencyBtn) {
-    emergencyBtn.addEventListener('click', () => {
-      alert("Emergency dialer not configured.");
-    });
-}
-
-// --- CORE LOGIC ---
-function handleInput(digit) {
-  if (isUnlocked) return;
-  if (enteredCode.length < maxDigits) { 
-    enteredCode += digit;
-    renderDots();
-    if (enteredCode.length === maxDigits) { 
-      performUnlock();
-    }
-  }
+  keypad.innerHTML = keys.map(k => {
+    if (k.n === null) return `<div class="key empty"></div>`;
+    return `
+      <div class="key" onclick="handleTap('${k.n}')">
+        <div class="key-digit">${k.n}</div>
+        <div class="key-sub">${k.s}</div>
+      </div>
+    `;
+  }).join('');
 }
 
 function renderDots() {
-  dotsContainer.innerHTML = '';
-  for (let i = 0; i < maxDigits; i++) { 
-    const dot = document.createElement('div');
-    dot.className = 'dot' + (i < enteredCode.length ? ' filled' : '');
-    dotsContainer.appendChild(dot);
-  }
+  dotsContainer.innerHTML = Array(maxDigits).fill(0).map((_, i) => 
+    `<div class="dot ${i < enteredCode.length ? 'filled' : ''}"></div>`
+  ).join('');
+}
 
-  // Logic for the FOOTER button
-  if (cancelFooterBtn) {
-    if (enteredCode.length > 0) {
-        cancelFooterBtn.textContent = "Delete";
-    } else {
-        cancelFooterBtn.textContent = "Cancel";
+// --- LOGIC ---
+function handleTap(digit) {
+  if (isUnlocked) return;
+  if (enteredCode.length < maxDigits) {
+    enteredCode += digit;
+    renderDots();
+    
+    if (enteredCode.length === maxDigits) {
+      setTimeout(attemptUnlock, 100);
     }
   }
 }
 
-function performUnlock() {
-  const userNum = parseInt(enteredCode, 10);
-  const result = referenceNumber - userNum;
+function attemptUnlock() {
+  // Check if we should force an error
+  if (currentErrors < forcedErrors) {
+    currentErrors++;
+    triggerError();
+    return;
+  }
 
+  // Calculate Magic Number
+  const inputNum = parseInt(enteredCode, 10);
+  const result = inputNum - referenceNumber;
+
+  // Visual Unlock
   magicResult.textContent = result;
+  // Show history (the calculation)
+  historyResult.textContent = `${inputNum} - ${referenceNumber} =`;
   
-  isUnlocked = true;
-  lockscreen.classList.add('unlocked');
+  unlock();
+}
 
+function triggerError() {
+  panel.classList.add('shake');
+  if (navigator.vibrate) navigator.vibrate(200);
+  
   setTimeout(() => {
+    panel.classList.remove('shake');
     enteredCode = "";
     renderDots();
   }, 500);
+}
+
+function unlock() {
+  isUnlocked = true;
+  lockscreen.classList.add('unlocked');
+  // Reset for next time
+  enteredCode = "";
+  renderDots();
+  currentErrors = 0; // Reset error counter after successful unlock
 }
 
 function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
   magicResult.textContent = "";
+  historyResult.textContent = "";
+}
+
+// --- BUTTON LISTENERS ---
+cancelBtn.addEventListener('click', () => {
+  if (enteredCode.length > 0) {
+    enteredCode = enteredCode.slice(0, -1);
+    renderDots();
+  }
+});
+// Footer buttons act as Cancel/Delete too
+cancelFooterBtn.addEventListener('click', () => {
   enteredCode = "";
   renderDots();
+});
+
+// --- SETTINGS LOGIC ---
+function openSettings() {
+  settingsOverlay.classList.add('open');
+  refInput.value = referenceNumber;
+  errorCountDisplay.textContent = forcedErrors;
 }
 
-// --- SETTINGS (Gestures) ---
+function closeSettings() {
+  settingsOverlay.classList.remove('open');
+  saveSettings();
+}
 
-// 1. Triple Tap Top-Center: Set Max Digits
-function setMaxDigits() {
-  const input = prompt("Set Passcode Length (4 or 6):", maxDigits);
-  if (input) {
-    const num = parseInt(input, 10);
-    if (num === 4 || num === 6) {
-      maxDigits = num;
-      enteredCode = ""; 
-      saveSettings();
-      renderDots();
-      initKeypad(); // Re-init in case
+closeSettingsBtn.addEventListener('click', closeSettings);
+
+refInput.addEventListener('input', (e) => {
+  referenceNumber = parseInt(e.target.value) || 0;
+});
+
+decErrors.addEventListener('click', () => {
+  if (forcedErrors > 0) forcedErrors--;
+  errorCountDisplay.textContent = forcedErrors;
+});
+
+incErrors.addEventListener('click', () => {
+  forcedErrors++;
+  errorCountDisplay.textContent = forcedErrors;
+});
+
+
+// --- GESTURES ---
+
+// 1. Double Tap (Top Corners for BG Upload)
+let topTapCount = 0;
+let topTapTimer = null;
+document.addEventListener('click', (e) => {
+  // Only detect double taps at top of screen
+  if (e.clientY > 100) return; 
+  
+  topTapCount++;
+  if (topTapTimer) clearTimeout(topTapTimer);
+  topTapTimer = setTimeout(() => { topTapCount = 0; }, 300);
+  
+  if (topTapCount === 2) {
+    const width = window.innerWidth;
+    if (e.clientX < width * 0.3) {
+      // Top Left -> Lock BG
+      uploadLock.click();
+    } else if (e.clientX > width * 0.7) {
+      // Top Right -> Home BG
+      uploadHome.click();
     }
   }
-}
+});
 
-// Helper for Robust Tapping
-function createTouchZone(x, y, w, h, callback, requiredTaps = 2) {
-  let tapCount = 0;
-  let tapTimer = null;
-  
-  window.addEventListener('touchend', (e) => {
-    if (e.touches.length > 0) return;
-    const touch = e.changedTouches[0];
-    if (touch.clientX >= x && touch.clientX <= x + w &&
-        touch.clientY >= y && touch.clientY <= y + h) {
-      
-      tapCount++;
-      if (tapTimer) clearTimeout(tapTimer);
-      tapTimer = setTimeout(() => { tapCount = 0; }, 500); 
-      
-      if (tapCount === requiredTaps) {
-        e.preventDefault(); 
-        callback();
-        tapCount = 0; 
-      }
+// 2. Triple Tap (Top Center for Code Length)
+let centerTapCount = 0;
+let centerTapTimer = null;
+document.addEventListener('click', (e) => {
+  if (e.clientY > 100) return;
+  const width = window.innerWidth;
+  // Check if Center
+  if (e.clientX > width * 0.3 && e.clientX < width * 0.7) {
+    centerTapCount++;
+    if (centerTapTimer) clearTimeout(centerTapTimer);
+    centerTapTimer = setTimeout(() => { centerTapCount = 0; }, 300);
+    
+    if (centerTapCount === 3) {
+      toggleDigits();
     }
-  }, {passive: false}); 
+  }
+});
+
+function toggleDigits() {
+  maxDigits = (maxDigits === 4) ? 6 : 4;
+  enteredCode = "";
+  renderDots();
+  alert(`Passcode length set to ${maxDigits}`);
+  saveSettings();
 }
 
-// Setup Zones
-createTouchZone(0, 0, 100, 100, () => uploadLock.click(), 2);
-createTouchZone(window.innerWidth - 100, 0, 100, 100, () => uploadHome.click(), 2);
-createTouchZone(window.innerWidth / 2 - 100, 0, 200, 100, setMaxDigits, 3);
-
-// 4. Triple Tap Bottom-Center (on Homescreen): Re-Lock
+// 3. Triple Tap Bottom Center (Re-Lock)
 let bottomTapCount = 0;
 let bottomTapTimer = null;
 document.addEventListener('click', (e) => {
   if (!isUnlocked) return;
+  // Bottom area check
   if (e.clientY > window.innerHeight - 150) {
     bottomTapCount++;
     if (bottomTapTimer) clearTimeout(bottomTapTimer);
@@ -180,8 +232,9 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 5. Two-Finger Swipe: Set Reference Number
+// 4. Two-Finger Swipe Down (Open Settings)
 let twoFingerStart = null;
+
 window.addEventListener('touchstart', (e) => {
   if (e.touches.length === 2) {
     twoFingerStart = e.touches[0].clientY;
@@ -191,26 +244,20 @@ window.addEventListener('touchstart', (e) => {
 window.addEventListener('touchend', (e) => {
   if (twoFingerStart !== null) {
     const endY = e.changedTouches[0].clientY;
-    if (Math.abs(endY - twoFingerStart) > 50) { 
-      const input = prompt("Set Reference Number:", referenceNumber);
-      if (input) {
-        referenceNumber = parseInt(input, 10);
-        saveSettings();
-      }
+    // Check if moved down by at least 50px
+    if ((endY - twoFingerStart) > 50) { 
+      openSettings();
     }
     twoFingerStart = null;
   }
 }, {passive: false});
 
 
-// --- STORAGE ---
+// --- STORAGE & FILES ---
 function saveSettings() {
   localStorage.setItem('magicRefNum', referenceNumber);
   localStorage.setItem('maxDigits', maxDigits); 
-}
-
-function saveImage(key, dataUrl) {
-  try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large!"); }
+  localStorage.setItem('forcedErrors', forcedErrors);
 }
 
 function loadSettings() {
@@ -220,6 +267,10 @@ function loadSettings() {
   const savedMaxDigits = localStorage.getItem('maxDigits');
   if (savedMaxDigits) maxDigits = parseInt(savedMaxDigits, 10);
 
+  const savedErrors = localStorage.getItem('forcedErrors');
+  if (savedErrors) forcedErrors = parseInt(savedErrors, 10);
+
+  // Load Backgrounds
   const savedLock = localStorage.getItem('bgLock');
   if (savedLock) lockscreen.style.backgroundImage = `url('${savedLock}')`;
 
@@ -227,7 +278,11 @@ function loadSettings() {
   if (savedHome) homescreen.style.backgroundImage = `url('${savedHome}')`;
 }
 
-// File Handlers
+function saveImage(key, dataUrl) {
+  try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large to save!"); }
+}
+
+// File Input Listeners
 uploadLock.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (file) {
