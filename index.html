@@ -23,9 +23,7 @@
     </main>
 
     <main class="lockscreen" id="lockscreen">
-      
       <div class="status-bar-spacer"></div>
-
       <div class="content-wrapper">
         <div class="passcode-panel" id="panel">
           <div class="prompt" id="promptText">Enter Passcode</div>
@@ -34,7 +32,6 @@
           <div class="cancel-btn" id="cancelBtn">Cancel</div>
         </div>
       </div>
-
       <div class="lock-footer-banner">
         <div class="footer-button" id="emergencyBtn">Emergency</div>
         <div class="footer-button" id="cancelFooterBtn">Cancel</div>
@@ -43,26 +40,61 @@
 
     <div id="settingsOverlay" class="settings-overlay">
       <div class="settings-card">
-        <h3>Magic Configuration</h3>
+        <h3>Configuration</h3>
         
-        <div class="setting-group">
-          <label>Reference Number</label>
-          <input type="number" id="refInput" placeholder="e.g. 4050" pattern="[0-9]*" inputmode="numeric">
-        </div>
-
-        <div class="setting-group">
-          <label>Forced Errors</label>
-          <div class="stepper">
-            <button id="decErrors">-</button>
-            <span id="errorCountDisplay">0</span>
-            <button id="incErrors">+</button>
+        <div class="setting-row">
+          <div class="setting-group">
+            <label>Ref Number</label>
+            <input type="number" id="refInput" placeholder="4050" pattern="[0-9]*" inputmode="numeric">
           </div>
-          <small>Shake & vibrate this many times before unlocking.</small>
+
+          <div class="setting-group">
+            <label>Forced Errors</label>
+            <div class="stepper">
+              <button id="decErrors">-</button>
+              <span id="errorCountDisplay">0</span>
+              <button id="incErrors">+</button>
+            </div>
+          </div>
         </div>
 
-        <div class="settings-actions">
-          <button id="closeSettingsBtn">Save & Close</button>
+        <div class="divider"></div>
+
+        <div class="instructions-container">
+          <h4>Gesture Guide</h4>
+          
+          <div class="instruction-item">
+            <span class="icon">👆</span>
+            <div class="text">
+              <strong>Double Tap</strong><br>
+              Top-Left: Upload Lock BG<br>
+              Top-Right: Upload Home BG
+            </div>
+          </div>
+
+          <div class="instruction-item">
+            <span class="icon">👆👆</span>
+            <div class="text">
+              <strong>Triple Tap</strong><br>
+              Top-Center: Toggle 4/6 Digits<br>
+              Bottom-Center (Home): Re-Lock
+            </div>
+          </div>
+
+          <div class="instruction-item">
+            <span class="icon">✌️</span>
+            <div class="text">
+              <strong>Two Fingers</strong><br>
+              Vertical Swipe: Open This Menu
+            </div>
+          </div>
         </div>
+
+        <div class="divider"></div>
+
+        <button id="closeSettingsBtn" class="save-btn">Save & Close</button>
+
+        <div class="credits">Created by James Seth Capacite</div>
       </div>
     </div>
 
@@ -72,11 +104,9 @@
   </div>
   
   <script src="script.js"></script>
-  
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('SW Registered'));
+      navigator.serviceWorker.register('./sw.js');
     }
   </script>
 </body>
