@@ -3,34 +3,32 @@
   --bg-color: #000;
   --text-color: #fff;
   
-  /* Liquid Glass Tokens */
-  --glass-surface: rgba(255, 255, 255, 0.05);
-  --glass-border-light: rgba(255, 255, 255, 0.4);
-  --glass-border-dark: rgba(255, 255, 255, 0.05);
-  --glass-blur: blur(25px);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-  --accent-blue: #0A84FF;
-  --text-secondary: rgba(235, 235, 245, 0.6);
+  /* Liquid Glass Tokens (iOS 26 Concept) */
+  --glass-surface: rgba(255, 255, 255, 0.08);
+  --glass-border-top: rgba(255, 255, 255, 0.35); /* Top light source */
+  --glass-border-bottom: rgba(255, 255, 255, 0.05); /* Bottom shadow */
+  --glass-blur: blur(30px);
+  --glass-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
 }
 
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  /* CRITICAL FIX: Locks the app to the screen to prevent shifting/bouncing */
-  position: fixed;
+  /* CRITICAL FIX: Lock Body to Screen (Anti-Shift) */
+  position: fixed; 
   top: 0; left: 0; right: 0; bottom: 0;
   width: 100%;
-  height: 100svh; /* Uses 'Small Viewport Height' to ignore browser UI */
+  height: 100svh; /* Small Viewport Height ignores browser chrome */
   
   margin: 0; padding: 0;
   background: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font-stack);
   overflow: hidden;
-  overscroll-behavior: none; /* Disables scroll chaining */
+  overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   
-  /* Safe Area Padding */
+  /* Safe Area Handling */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -47,11 +45,12 @@ html, body {
   width: 100%; height: 100%; 
   background-color: #000;
   background-size: cover;
-  background-repeat: no-repeat;
   background-position: center;
+  background-repeat: no-repeat;
 }
 
 .homescreen { z-index: 1; }
+
 .lockscreen { 
   z-index: 10; 
   display: flex; flex-direction: column; 
@@ -64,43 +63,25 @@ html, body {
   transform: scale(1.1); 
 }
 
-/* --- RESULTS --- */
-.magic-result, .history-result {
-  position: absolute; bottom: 50px;
-  font-size: 15px; font-weight: 500;
-  color: rgba(255, 255, 255, 0.4);
-  pointer-events: none; letter-spacing: 0.5px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-.magic-result { right: 30px; text-align: right; }
-.history-result { left: 30px; text-align: left; white-space: pre-wrap; }
+/* Spacer to push content down from notch area */
+.status-bar-spacer { height: 40px; flex-shrink: 0; }
 
-/* --- PASSCODE UI --- */
 .content-wrapper {
   flex: 1; display: flex; flex-direction: column; 
-  justify-content: flex-end; align-items: center;
-  padding-bottom: 8vh; /* Adjusted for better balance */
+  justify-content: center; /* Centered, but biased towards bottom by margin */
+  align-items: center;
+  margin-top: auto; 
+  margin-bottom: 8vh; /* Lift keypad slightly */
 }
 
 .passcode-panel { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
-/* Animation: Shake */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  15% { transform: translateX(-14px); }
-  30% { transform: translateX(12px); }
-  45% { transform: translateX(-10px); }
-  60% { transform: translateX(8px); }
-  75% { transform: translateX(-4px); }
-}
-.passcode-panel.shake { animation: shake 0.5s ease-in-out; }
-
 .prompt { 
-  font-size: 22px; font-weight: 500; margin-bottom: 35px; 
+  font-size: 22px; font-weight: 500; margin-bottom: 30px; 
   letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-.dots { display: flex; gap: 24px; margin-bottom: 50px; height: 12px; }
+.dots { display: flex; gap: 24px; margin-bottom: 45px; height: 12px; }
 .dot { 
   width: 12px; height: 12px; border-radius: 50%; 
   border: 1.5px solid rgba(255, 255, 255, 0.5); 
@@ -109,42 +90,45 @@ html, body {
 }
 .dot.filled { background: #fff; border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.6); }
 
-/* --- LIQUID GLASS KEYPAD --- */
+/* --- LIQUID GLASS KEYPAD (iOS 26 Style) --- */
 .keypad { 
   display: grid; grid-template-columns: repeat(3, 80px); 
-  gap: 24px; justify-content: center; margin-bottom: 20px; 
+  gap: 25px; justify-content: center; margin-bottom: 20px; 
 }
 
 .key {
   width: 80px; height: 80px; border-radius: 50%;
   
-  /* Liquid Glass Effect */
+  /* Liquid Glass Material */
   background: var(--glass-surface);
-  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur) saturate(160%); 
+  -webkit-backdrop-filter: var(--glass-blur) saturate(160%);
+  
+  /* Light & Shadow (Refraction) */
+  border-top: 1px solid var(--glass-border-top);
+  border-bottom: 1px solid var(--glass-border-bottom);
+  border-left: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  
   box-shadow: 
-    inset 0 0 20px rgba(255,255,255,0.02), /* Inner atmosphere */
-    0 10px 20px rgba(0,0,0,0.2),          /* Drop shadow */
-    0 0 0 1px rgba(255,255,255,0.1);      /* Subtle outline */
-    
-  /* Specular Highlight (The "Wet" Top Edge) */
-  border-top: 1px solid var(--glass-border-light);
-  border-bottom: 1px solid var(--glass-border-dark);
+    inset 0 0 20px rgba(255,255,255,0.02),
+    0 15px 35px rgba(0,0,0,0.25);
   
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; position: relative; overflow: hidden;
   transition: all 0.15s ease-out;
 }
 
-/* Water Reflection Gradient */
-.key::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.15), transparent 70%);
+/* Internal Glint */
+.key::after {
+  content: ''; position: absolute; top: 5px; left: 20px; right: 20px; height: 30px;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.15) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .key:active { 
   transform: scale(0.92);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
   box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
 }
 
@@ -156,98 +140,35 @@ html, body {
   font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; 
   opacity: 0.5; z-index: 2; 
 }
+
+/* Hidden keys (beside 0) */
 .key.empty { 
   background: transparent; backdrop-filter: none; 
   border: none; box-shadow: none; pointer-events: none;
 }
 
-.cancel-btn { 
-  font-size: 17px; font-weight: 600; color: #fff; 
-  margin-top: 25px; opacity: 0; transition: opacity 0.2s; 
-  text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-}
-.cancel-btn.visible { opacity: 1; cursor: pointer; }
-
 /* --- FOOTER BANNER --- */
 .lock-footer-banner {
   position: absolute; bottom: 0; left: 0; width: 100%; 
-  height: 90px;
-  display: flex; align-items: flex-start; justify-content: space-between; 
-  padding: 20px 40px;
+  height: 80px;
+  display: flex; align-items: center; justify-content: space-between; 
+  padding: 0 40px;
   padding-bottom: max(20px, env(safe-area-inset-bottom));
-  pointer-events: none; /* Let clicks pass through to background */
+  pointer-events: none;
 }
 .footer-button { 
-  pointer-events: auto; /* Re-enable clicks */
-  font-size: 16px; font-weight: 600; color: #fff; opacity: 0.8; cursor: pointer; 
+  pointer-events: auto;
+  font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); cursor: pointer; 
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
-/* --- SETTINGS MENU --- */
+/* Magic Result (Hidden usually) */
+.magic-result {
+  position: absolute; bottom: 50px; right: 30px;
+  font-size: 15px; font-weight: 500; color: rgba(255, 255, 255, 0.3);
+}
+
+/* Settings Overlay */
 .settings-overlay {
-  position: absolute; inset: 0; z-index: 100;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-  display: flex; justify-content: center; align-items: flex-end;
+  position: absolute; inset: 0; z-index: 100; display: none; /* Add JS to show/hide */
 }
-.settings-overlay.visible { opacity: 1; pointer-events: auto; }
-
-.settings-sheet {
-  width: 94%; max-width: 400px; margin-bottom: 20px;
-  background: rgba(30, 30, 30, 0.75);
-  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border-radius: 24px;
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-  padding: 20px;
-  transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.19, 1, 0.22, 1);
-}
-.settings-overlay.visible .settings-sheet { transform: translateY(0); }
-
-.menu-tabs {
-  display: flex; background: rgba(118, 118, 128, 0.24);
-  border-radius: 9px; padding: 2px; margin-bottom: 20px;
-}
-.tab-btn {
-  flex: 1; text-align: center; padding: 6px; font-size: 13px; font-weight: 600;
-  border-radius: 7px; color: var(--text-secondary); cursor: pointer;
-}
-.tab-btn.active { background: rgba(99, 99, 102, 0.5); color: #fff; }
-
-.menu-section { display: none; }
-.menu-section.active { display: block; animation: fadeIn 0.3s; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-.list-group {
-  background: rgba(255,255,255,0.05); border-radius: 12px; 
-  overflow: hidden; margin-bottom: 15px;
-}
-.list-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-.list-item:last-child { border-bottom: none; }
-
-.label { font-size: 15px; font-weight: 500; }
-.value { font-size: 15px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; }
-
-.stepper-btn {
-  width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2);
-  background: transparent; color: #fff; font-size: 18px; line-height: 1;
-}
-.clean-input {
-  background: transparent; border: none; color: var(--accent-blue);
-  font-size: 16px; font-weight: 600; text-align: right; width: 80px;
-}
-.clean-input:focus { outline: none; }
-
-.guide-text { font-size: 13px; line-height: 1.5; color: var(--text-secondary); }
-.guide-row { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.guide-row strong { color: #fff; }
-
-.close-action {
-  background: var(--accent-blue); color: white; border: none;
-  width: 100%; padding: 14px; border-radius: 14px;
-  font-size: 16px; font-weight: 600; margin-top: 10px;
-}
-.credits-sub { text-align: center; font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 15px; }
