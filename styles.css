@@ -14,7 +14,7 @@
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  /* FIXED: Force full screen fill, preventing scroll or crop */
+  /* STRICT FULLSCREEN LOCK */
   position: fixed; 
   top: 0; left: 0; right: 0; bottom: 0;
   width: 100%; height: 100%;
@@ -23,7 +23,7 @@ html, body {
   background: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font-stack);
-  overflow: hidden;
+  overflow: hidden; /* No scrolling allowed */
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -33,9 +33,9 @@ html, body {
 main {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   
-  /* FIXED: Ensures uploaded screenshot fills the entire screen */
-  background-size: cover; 
-  background-position: center center; 
+  /* CROP FIX: Forces image to fit the container exactly */
+  background-size: 100% 100%; 
+  background-position: center; 
   background-repeat: no-repeat;
   
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -43,30 +43,32 @@ main {
 
 .homescreen { z-index: 1; display: block; }
 
+/* --- RESULTS (DISCREET) --- */
 /* Bottom Right: Magic Unlock Number */
 .magic-result {
   position: absolute; 
-  bottom: 20px; /* LOWERED: Discreetly at the bottom */
-  right: 30px;
-  font-size: 24px; font-weight: 500;
-  color: rgba(255, 255, 255, 0.4); 
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5); pointer-events: none;
+  bottom: 10px; /* Pushed to very bottom edge */
+  right: 20px;  /* Tucked in corner */
+  font-size: 20px; font-weight: 500;
+  color: rgba(255, 255, 255, 0.35); /* Lower opacity for stealth */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8); 
+  pointer-events: none;
 }
 
 /* Bottom Left: History Stack (Star Sign) */
 .history-result {
   position: absolute; 
-  bottom: 20px; /* LOWERED: Aligned with Magic Result */
-  left: 30px;    
+  bottom: 10px; /* Pushed to very bottom edge */
+  left: 20px;   /* Tucked in corner */
   
   display: flex;
-  flex-direction: column-reverse; /* Stacks upwards from bottom */
+  flex-direction: column-reverse; 
   align-items: flex-start; 
-  gap: 4px;
+  gap: 2px;
 
-  font-size: 18px; font-weight: 600;
-  color: rgba(255, 255, 255, 0.5); 
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
+  font-size: 16px; font-weight: 600;
+  color: rgba(255, 255, 255, 0.45); 
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8); 
   pointer-events: none;
   font-variant-numeric: tabular-nums;
   text-transform: capitalize;
@@ -84,8 +86,8 @@ main {
   height: 100%;
   width: 100%;
   
-  /* POSITION: Sits keypad comfortably low */
-  padding-bottom: 80px; 
+  /* POSITION: Lowers keypad naturally. Adjust this if still too high. */
+  padding-bottom: 60px; 
 }
 
 /* --- PASSCODE PANEL --- */
@@ -106,7 +108,7 @@ main {
   text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-.dots { display: flex; gap: 24px; margin-bottom: 40px; height: 16px; }
+.dots { display: flex; gap: 24px; margin-bottom: 35px; height: 16px; }
 .dot {
   width: 14px; height: 14px; border-radius: 50%;
   border: 1.5px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -117,7 +119,7 @@ main {
 /* --- KEYPAD --- */
 .keypad {
   display: grid; grid-template-columns: repeat(3, 1fr);
-  column-gap: 32px; row-gap: 20px;
+  column-gap: 32px; row-gap: 18px;
 }
 
 .key {
@@ -150,8 +152,8 @@ main {
   position: absolute; bottom: 0; left: 0; width: 100%;
   padding: 0 40px;
   
-  /* Keeps buttons safe from very bottom edge */
-  padding-bottom: max(30px, env(safe-area-inset-bottom));
+  /* Ensures buttons sit comfortably at bottom but don't touch edge */
+  padding-bottom: max(35px, env(safe-area-inset-bottom));
   
   height: 100px;
   display: flex; justify-content: space-between; align-items: flex-end;
