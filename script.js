@@ -98,8 +98,8 @@ function renderDots() {
 }
 
 function updateHistoryDisplay() {
+  // Update visually only when called (on unlock)
   historyResult.innerHTML = historyLog.join('<br>');
-  historyResult.style.opacity = '1';
 }
 
 // --- LOGIC ---
@@ -129,9 +129,10 @@ function attemptUnlock() {
       if (sign) resultText = sign;
     } 
 
+    // Store silently
     historyLog.push(resultText);
-    updateHistoryDisplay();
-
+    
+    // Shake without showing history yet
     triggerError();
     return;
   }
@@ -141,6 +142,10 @@ function attemptUnlock() {
   const result = inputNum - referenceNumber;
 
   magicResult.textContent = result;
+  
+  // NOW show the accumulated history on the Homescreen
+  updateHistoryDisplay();
+  
   unlock();
 }
 
@@ -160,16 +165,15 @@ function unlock() {
   enteredCode = "";
   renderDots();
   currentErrors = 0; 
-  historyLog = []; 
-  updateHistoryDisplay();
+  // We do NOT clear historyLog here so it stays visible on homescreen
 }
 
 function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
   magicResult.textContent = "";
-  historyLog = [];
-  updateHistoryDisplay();
+  historyLog = []; // Reset log on re-lock
+  historyResult.innerHTML = "";
 }
 
 // --- FOOTER ---
