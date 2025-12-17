@@ -31,7 +31,7 @@
           <div class="prompt">Enter Passcode</div>
           <div class="dots" id="dots"></div>
           <div class="keypad" id="keypad"></div>
-          <div class="cancel-btn" id="cancelBtn">Cancel</div>
+          <!-- REMOVED duplicate cancel button here -->
         </div>
       </div>
 
@@ -107,7 +107,6 @@
   
   <script src="script.js"></script>
   <script>
-    // Tab Switcher Logic for the Settings Menu
     function switchTab(tabName) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
