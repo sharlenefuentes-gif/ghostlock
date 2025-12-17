@@ -2,71 +2,56 @@
   --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --bg-color: #000;
   --text-color: #fff;
-  /* iOS Liquid Glass Variables */
   --glass-bg: rgba(255, 255, 255, 0.15);
   --glass-border: rgba(255, 255, 255, 0.2);
   --glass-pressed: rgba(255, 255, 255, 0.35);
+  --blue-btn: #007aff;
 }
 
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  height: 100%; width: 100%;
-  min-height: 100vh; min-height: 100dvh; 
-  margin: 0; padding: 0;
-  background: var(--bg-color);
-  color: var(--text-color);
-  font-family: var(--font-stack);
-  overflow: hidden;
+  height: 100%; width: 100%; margin: 0; padding: 0;
+  background: var(--bg-color); color: var(--text-color);
+  font-family: var(--font-stack); overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 
 .app { position: relative; width: 100%; height: 100%; }
 
-/* --- HOMESCREEN --- */
+/* SCREENS */
 .homescreen {
-  position: absolute; top: 0; left: 0; 
-  width: 100%; height: 100%; 
-  background-color: #222; background-size: cover; background-position: center bottom; 
-  z-index: 1;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+  background-color: #222; background-size: cover; background-position: center bottom; z-index: 1;
 }
 
-/* Magic Result: Bottom Right */
 .magic-result {
   position: absolute; bottom: 45px; right: 30px;
-  font-size: 16px; font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  pointer-events: none;
+  font-size: 16px; font-weight: 500; color: rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); pointer-events: none;
 }
 
-/* History Result: Bottom Left */
 .history-result {
   position: absolute; bottom: 45px; left: 30px;
-  font-size: 16px; font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  pointer-events: none;
-  text-align: left; white-space: pre-wrap; /* Allows multi-line */
+  font-size: 16px; font-weight: 500; color: rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); pointer-events: none;
+  text-align: left; white-space: pre-wrap;
 }
 
-/* --- LOCKSCREEN --- */
 .lockscreen {
-  position: absolute; top: 0; left: 0; 
-  width: 100%; height: 100%; 
-  background-color: #000; background-size: cover; background-position: center bottom; 
-  z-index: 10;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+  background-color: #000; background-size: cover; background-position: center bottom; z-index: 10;
   display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
   transition: opacity 0.35s ease, transform 0.35s ease;
-  padding-bottom: 0; 
 }
 .lockscreen.unlocked { opacity: 0; pointer-events: none; transform: scale(1.1); }
 
+/* LAYOUT */
 .status-bar-spacer { height: 60px; width: 100%; }
 .content-wrapper { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; width: 100%; align-items: center; margin-bottom: 100px; }
 .passcode-panel { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
-/* SHAKE ANIMATION FOR ERROR */
+/* ANIMATION */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20%, 60% { transform: translateX(-15px); }
@@ -75,35 +60,19 @@ html, body {
 .passcode-panel.shake { animation: shake 0.4s ease-in-out; }
 
 .prompt { font-size: 22px; font-weight: 500; margin-bottom: 24px; letter-spacing: 0.3px; }
-
 .dots { display: flex; gap: 24px; margin-bottom: 45px; height: 14px; }
-.dot {
-  width: 13px; height: 13px; border-radius: 50%;
-  border: 1.5px solid #fff; background: transparent;
-  transition: background 0.15s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
+.dot { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid #fff; transition: background 0.15s; }
 .dot.filled { background: #fff; }
 
-/* --- LIQUID GLASS KEYPAD --- */
-.keypad {
-  display: grid; grid-template-columns: repeat(3, 80px); gap: 25px;
-  justify-content: center; margin-bottom: 30px;
-}
-
+/* KEYPAD */
+.keypad { display: grid; grid-template-columns: repeat(3, 80px); gap: 25px; justify-content: center; margin-bottom: 30px; }
 .key {
   width: 80px; height: 80px; border-radius: 50%;
-  
-  /* Liquid Glass Look */
-  background: var(--glass-bg);
-  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  
+  background: var(--glass-bg); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-border); box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; transition: background 0.1s, transform 0.1s;
 }
-
 .key:active { background: var(--glass-pressed); transform: scale(0.95); }
 .key-digit { font-size: 34px; font-weight: 400; line-height: 1; margin-bottom: 2px; }
 .key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); }
@@ -112,7 +81,6 @@ html, body {
 .cancel-btn { font-size: 17px; font-weight: 500; color: #fff; margin-top: 10px; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
 .cancel-btn.visible { opacity: 1; }
 
-/* --- FOOTER BANNER --- */
 .lock-footer-banner {
   position: absolute; bottom: 30px; left: 0; width: 100%; height: 70px; 
   display: flex; align-items: center; justify-content: space-between; 
@@ -121,47 +89,56 @@ html, body {
 }
 .footer-button { font-size: 17px; font-weight: 500; color: #fff; cursor: pointer; opacity: 0.9; }
 
-/* --- SETTINGS OVERLAY (Modern Swipe Down) --- */
+/* --- SETTINGS OVERLAY --- */
 .settings-overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  z-index: 200;
-  display: flex; justify-content: center; align-items: flex-start;
-  padding-top: 100px;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  z-index: 200; display: flex; justify-content: center; align-items: center;
   opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
 }
 .settings-overlay.visible { opacity: 1; pointer-events: auto; }
 
 .settings-card {
-  width: 85%; max-width: 320px;
-  background: rgba(30, 30, 30, 0.85);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-  padding: 25px;
-  color: #fff; text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  width: 90%; max-width: 340px;
+  max-height: 85%; overflow-y: auto;
+  background: rgba(35, 35, 35, 0.9);
+  backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+  padding: 25px; color: #fff; text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
 }
-.settings-card h3 { margin: 0 0 20px 0; font-size: 18px; font-weight: 600; }
 
-.setting-group { margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; }
-.setting-group label { font-size: 13px; text-transform: uppercase; color: #aaa; margin-bottom: 8px; font-weight: 600; letter-spacing: 1px; }
-.setting-group small { font-size: 11px; color: #777; margin-top: 5px; }
+.settings-card h3 { margin: 0 0 20px 0; font-size: 18px; font-weight: 600; }
+.settings-card h4 { margin: 0 0 10px 0; font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+
+.setting-row { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; }
+.setting-group { flex: 1; display: flex; flex-direction: column; align-items: center; }
+.setting-group label { font-size: 12px; color: #ccc; margin-bottom: 5px; font-weight: 500; }
 
 #refInput {
   background: rgba(255,255,255,0.1); border: none; border-radius: 8px;
-  color: #fff; font-size: 20px; padding: 10px; width: 120px; text-align: center;
+  color: #fff; font-size: 18px; padding: 8px; width: 100%; text-align: center;
 }
-#refInput:focus { outline: 2px solid #007aff; }
 
-.stepper { display: flex; align-items: center; gap: 15px; }
-.stepper button {
-  width: 40px; height: 40px; border-radius: 50%; border: none;
-  background: rgba(255,255,255,0.2); color: #fff; font-size: 22px; cursor: pointer;
-}
-.stepper span { font-size: 24px; font-weight: 600; width: 30px; }
+.stepper { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 2px 5px; }
+.stepper button { width: 30px; height: 30px; border-radius: 6px; border: none; background: transparent; color: #fff; font-size: 20px; }
+.stepper span { font-size: 18px; font-weight: 600; width: 20px; }
 
-.settings-actions button {
-  background: #007aff; color: white; border: none; padding: 12px 30px;
+.divider { height: 1px; background: rgba(255,255,255,0.1); margin: 15px 0; width: 100%; }
+
+/* INSTRUCTIONS LIST */
+.instructions-container { text-align: left; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+.instruction-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.instruction-item:last-child { margin-bottom: 0; }
+.instruction-item .icon { font-size: 20px; min-width: 25px; }
+.instruction-item .text { font-size: 13px; line-height: 1.4; color: #ddd; }
+.instruction-item strong { color: #fff; font-weight: 600; }
+
+.save-btn {
+  background: var(--blue-btn); color: white; border: none; padding: 14px;
   border-radius: 12px; font-size: 16px; font-weight: 600; width: 100%;
+  margin-bottom: 15px;
 }
+.save-btn:active { opacity: 0.8; transform: scale(0.98); }
+
+.credits { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 5px; font-weight: 500; letter-spacing: 0.5px; }
