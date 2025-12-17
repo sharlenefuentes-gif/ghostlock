@@ -3,10 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1" />
+  
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Magic Lock">
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.png"> 
   
-  <title>Magic Lock</title>
+  <title>Magic Lockscreen</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -18,14 +23,18 @@
     </main>
 
     <main class="lockscreen" id="lockscreen">
+      
+      <div class="status-bar-spacer"></div>
+
       <div class="content-wrapper">
         <div class="passcode-panel" id="panel">
-          <div class="prompt" id="promptText">Enter Passcode</div>
+          <div class="prompt">Enter Passcode</div>
           <div class="dots" id="dots"></div>
           <div class="keypad" id="keypad"></div>
           <div class="cancel-btn" id="cancelBtn">Cancel</div>
         </div>
       </div>
+
       <div class="lock-footer-banner">
         <div class="footer-button" id="emergencyBtn">Emergency</div>
         <div class="footer-button" id="cancelFooterBtn">Cancel</div>
@@ -63,19 +72,23 @@
           <div class="guide-text">
             
             <div class="guide-row">
-              <span><strong>Background Setup</strong><br>Double-tap top corners to upload images (Left for Lock, Right for Home).</span>
+              <strong>Background Setup</strong>
+              <span>Double-tap top corners to upload images (Left for Lock, Right for Home).</span>
             </div>
 
             <div class="guide-row">
-              <span><strong>Digit Length</strong><br>Triple-tap the top-center area to toggle between 4 or 6 digit passcode.</span>
+              <strong>Digit Length</strong>
+              <span>Triple-tap the top-center area to toggle between 4 or 6 digit passcode.</span>
             </div>
 
             <div class="guide-row">
-              <span><strong>Quick Re-Lock</strong><br>Triple-tap bottom-center on homescreen to lock instantly.</span>
+              <strong>Quick Re-Lock</strong>
+              <span>Triple-tap bottom-center on homescreen to lock instantly.</span>
             </div>
 
             <div class="guide-row" style="border:none">
-              <span><strong>Access Menu</strong><br>Swipe down with two fingers anywhere on screen.</span>
+              <strong>Access Menu</strong>
+              <span>Swipe down with two fingers anywhere on screen to open this menu.</span>
             </div>
 
           </div>
@@ -94,22 +107,23 @@
   
   <script src="script.js"></script>
   <script>
-    // Tab Switcher Logic
+    // Tab Switcher Logic for the Settings Menu
     function switchTab(tabName) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
       
       if(tabName === 'config') {
-        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.querySelector('.menu-tabs .tab-btn:nth-child(1)').classList.add('active');
         document.getElementById('tab-config').classList.add('active');
       } else {
-        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.querySelector('.menu-tabs .tab-btn:nth-child(2)').classList.add('active');
         document.getElementById('tab-guide').classList.add('active');
       }
     }
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('Service Worker Registered (Offline Ready)'));
     }
   </script>
 </body>
