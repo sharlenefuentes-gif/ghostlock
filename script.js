@@ -98,7 +98,6 @@ function renderDots() {
 }
 
 function updateHistoryDisplay() {
-  // Update visually only when called (on unlock)
   historyResult.innerHTML = historyLog.join('<br>');
 }
 
@@ -165,7 +164,6 @@ function unlock() {
   enteredCode = "";
   renderDots();
   currentErrors = 0; 
-  // We do NOT clear historyLog here so it stays visible on homescreen
 }
 
 function reLock() {
