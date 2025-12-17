@@ -1,23 +1,23 @@
 // --- CONFIGURATION ---
 let maxDigits = 6; 
 let referenceNumber = 4050; 
-let forcedErrors = 0; // Number of times to fake fail
+let forcedErrors = 0; 
 
 // --- STATE ---
 let enteredCode = "";
 let isUnlocked = false;
-let currentErrors = 0; // Tracks how many times we've failed in the current session
-let failedAttempts = []; // Stores the numbers the user typed during fake errors
+let currentErrors = 0; 
+let failedAttempts = []; 
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
 const homescreen = document.getElementById('homescreen');
-const panel = document.getElementById('panel'); // For shaking
+const panel = document.getElementById('panel'); 
 const promptText = document.getElementById('promptText');
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
 const magicResult = document.getElementById('magicResult');
-const historyResult = document.getElementById('historyResult'); // New
+const historyResult = document.getElementById('historyResult'); 
 const cancelBtn = document.getElementById('cancelBtn'); 
 const emergencyBtn = document.getElementById('emergencyBtn');
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
@@ -59,12 +59,13 @@ function initKeypad() {
       btn.innerHTML = `<span class="key-digit">${k.n}</span>` + 
                       (k.s ? `<span class="key-sub">${k.s}</span>` : '');
       
-      // Haptics on touch
+      // Haptics on touch start for faster response
       btn.addEventListener('touchstart', (e) => { 
         e.preventDefault(); 
         triggerHaptic('light');
         handleInput(k.n); 
       });
+      // Fallback for mouse click
       btn.addEventListener('click', () => {
         handleInput(k.n);
       });
@@ -73,11 +74,16 @@ function initKeypad() {
   });
 }
 
-// Haptic Helper (Best effort for web)
+// --- HAPTICS HANDLER ---
 function triggerHaptic(type) {
-  if (!navigator.vibrate) return;
-  if (type === 'light') navigator.vibrate(10); // Subtle click
-  if (type === 'error') navigator.vibrate([50, 50, 50, 50, 100]); // Brrt-brrt-brrt
+  // Check if browser supports vibration
+  if (navigator.vibrate) {
+    if (type === 'light') {
+      navigator.vibrate(15); // Short tick
+    } else if (type === 'error') {
+      navigator.vibrate([50, 30, 50, 30, 50]); // Error vibration pattern
+    }
+  }
 }
 
 // Footer Logic
@@ -103,7 +109,7 @@ function handleInput(digit) {
     
     if (enteredCode.length === maxDigits) { 
       // Delay slightly for realism
-      setTimeout(attemptUnlock, 100);
+      setTimeout(attemptUnlock, 150);
     }
   }
 }
@@ -158,7 +164,6 @@ function performUnlock() {
   magicResult.textContent = result;
 
   // 2. Show History Results (Bottom Left)
-  // Format: "1234\n5678"
   if (failedAttempts.length > 0) {
     historyResult.textContent = failedAttempts.join('\n');
   } else {
@@ -172,7 +177,7 @@ function performUnlock() {
   // Reset input state
   setTimeout(() => {
     enteredCode = "";
-    currentErrors = 0; // Reset errors for next lock
+    currentErrors = 0; 
     failedAttempts = [];
     renderDots();
   }, 500);
@@ -195,16 +200,13 @@ function openSettings() {
 }
 
 function closeSettings() {
-  // Save Ref Number
   if (refInput.value) {
     referenceNumber = parseInt(refInput.value, 10);
   }
-  // Save Forced Errors (already in variable via buttons)
   saveSettings();
   settingsOverlay.classList.remove('visible');
 }
 
-// Stepper Logic
 decErrors.addEventListener('click', () => {
   if (forcedErrors > 0) {
     forcedErrors--;
@@ -212,7 +214,7 @@ decErrors.addEventListener('click', () => {
   }
 });
 incErrors.addEventListener('click', () => {
-  if (forcedErrors < 5) {
+  if (forcedErrors < 10) {
     forcedErrors++;
     errorCountDisplay.textContent = forcedErrors;
   }
@@ -314,7 +316,6 @@ window.addEventListener('touchend', (e) => {
   if (twoFingerStart !== null) {
     const endY = e.changedTouches[0].clientY;
     if (Math.abs(endY - twoFingerStart) > 50) { 
-      // Open the new Settings Overlay instead of prompt
       openSettings();
     }
     twoFingerStart = null;
