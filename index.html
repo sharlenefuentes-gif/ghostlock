@@ -105,9 +105,15 @@
                   <span class="slider"></span>
                 </label>
               </div>
+              
               <div class="list-item" id="nameInputRow" style="display:none;">
                 <div class="label">Spectator Name</div>
                 <input type="text" id="spectatorName" class="clean-input" placeholder="Someone">
+              </div>
+              
+              <div class="list-item" id="notesUploadRow" style="display:none;">
+                <div class="label">Notes Background</div>
+                <button id="btnUploadNotes" class="upload-btn">Upload Image</button>
               </div>
             </div>
 
@@ -118,7 +124,7 @@
             <div class="guide-row"><span><strong>Change Length</strong><br>Triple-tap Top-Center (toggle 4/6 digits).</span></div>
             <div class="guide-row"><span><strong>Quick Re-Lock</strong><br>Triple-tap bottom-center on homescreen.</span></div>
             <div class="guide-row"><span><strong>Menu</strong><br>Swipe down with two fingers.</span></div>
-            <div class="guide-row"><span><strong>Notes Effect</strong><br>Enable toggle. Upload screenshot of blank note as Home BG.</span></div>
+            <div class="guide-row"><span><strong>Notes Effect</strong><br>Enable toggle. Upload screenshot of blank note. Input Name.</span></div>
             <div class="guide-row"><span><strong>Emergency</strong><br>Tap Emergency button to reveal their hidden input.</span></div>
           </div>
         </div>
@@ -130,6 +136,7 @@
 
     <input id="uploadLock" type="file" accept="image/*" style="display: none" />
     <input id="uploadHome" type="file" accept="image/*" style="display: none" />
+    <input id="uploadNotes" type="file" accept="image/*" style="display: none" />
 
   </div>
   
