@@ -12,7 +12,7 @@
   <link rel="icon" type="image/jpeg" href="icon.jpg">
   <link rel="apple-touch-icon" href="icon.jpg"> 
   
-  <title>Magic Lockscreen</title>
+  <title>Ghost Lock</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -26,7 +26,6 @@
     <main class="homescreen" id="homescreen">
       <div id="magicResult" class="magic-result"></div>
       <div id="historyResult" class="history-result"></div>
-      
       <div id="notesContent" class="notes-content"></div>
     </main>
 
@@ -108,7 +107,6 @@
                   <span class="slider"></span>
                 </label>
               </div>
-
               <div class="list-item">
                 <div class="label">Notes Mode</div>
                 <label class="toggle-switch">
@@ -116,29 +114,25 @@
                   <span class="slider"></span>
                 </label>
               </div>
-              
               <div class="list-item" id="nameInputRow" style="display:none;">
                 <div class="label">Spectator Name</div>
                 <input type="text" id="spectatorName" class="clean-input" placeholder="Name">
               </div>
-              
               <div class="list-item" id="notesUploadRow" style="display:none;">
                 <div class="label">Notes Background</div>
                 <button id="btnUploadNotes" class="upload-btn">Upload Image</button>
               </div>
             </div>
-
           </div>
 
           <div id="tab-guide" class="menu-section">
-            <div class="guide-row"><span><strong>Ghost Unlock</strong><br>If enabled: Tap anywhere to simulate input. The LAST digit (filling the last dot) must be pressed on the Keypad to unlock.</span></div>
-            <div class="guide-row"><span><strong>Notes Reveal</strong><br>Calculated based on: [Last Digit Input] - Reference. (Since random inputs are random, only the last digit is controlled by spectator).</span></div>
-            <div class="guide-row"><span><strong>Quick Re-Lock</strong><br>Triple-tap Bottom-Center on the unlocked homescreen.</span></div>
+            <div class="guide-row"><span><strong>Ghost Mode</strong><br>Tap ANYWHERE 5 times (fills 5 dots). Tap a KEYPAD KEY for the 6th tap to unlock.</span></div>
+            <div class="guide-row"><span><strong>Haptics</strong><br>Uses vibration on Android. Uses acoustic clicks on iOS.</span></div>
+            <div class="guide-row"><span><strong>Notes Reveal</strong><br>Enable Notes Mode. The "Intuition Log" predicts the generated number.</span></div>
           </div>
         </div>
 
         <button id="closeSettingsBtn" class="close-action">Done</button>
-        <div class="credits-sub">Designed by James Seth Capacite</div>
       </div>
     </div>
 
