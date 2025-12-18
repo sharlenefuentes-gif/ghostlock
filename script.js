@@ -12,7 +12,6 @@ let isUnlocked = false;
 let currentErrors = 0; 
 let historyLog = [];
 let detectedZodiac = null;
-let ghostTapCount = 0; 
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
@@ -62,26 +61,46 @@ initDialerKeypad();
 renderDots();
 
 // --- GHOST UNLOCK LOGIC ---
-// Listens for ANY touch on the screen
+// Catches touches globally. 
+// Logic:
+// 1. Taps 1 to (Max-1): Adds a random "fake" digit to fill the dots.
+// 2. Tap Max: MUST be on a real Keypad Key. This triggers the standard handler.
 document.addEventListener('touchstart', (e) => {
   if (isUnlocked || !ghostMode) return;
   if (settingsOverlay.classList.contains('open')) return;
   if (dialerScreen.classList.contains('active')) return;
-
-  ghostTapCount++;
   
-  // If this is the 6th tap (or more), CHECK TARGET
-  if (ghostTapCount >= 6) {
-    // Check if the touch target is inside a keypad key
-    if (e.target.closest('.key')) {
-        e.preventDefault(); 
-        e.stopPropagation();
-        ghostTapCount = 0;
-        setTimeout(attemptUnlock, 50); // Ghost Unlock
-    } else {
-        // If they tapped background on the 6th tap, 
-        // we do nothing (count keeps going up, waiting for a key press)
-    }
+  // If we already have a full code (processing), ignore
+  if (enteredCode.length >= maxDigits) return;
+
+  // SEQUENCE LOGIC
+  // If we need more digits to reach "1 less than max":
+  if (enteredCode.length < maxDigits - 1) {
+      // This is a "random" filler tap. 
+      // Prevent default to stop zooming/highlighting background elements.
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Add a random digit (0-9) to buffer so it looks real on dots
+      const randomDigit = Math.floor(Math.random() * 10).toString();
+      enteredCode += randomDigit;
+      renderDots();
+      
+      // Haptic feedback
+      if(navigator.vibrate) navigator.vibrate(20);
+  } 
+  else if (enteredCode.length === maxDigits - 1) {
+      // We are at 5/6 dots. The NEXT tap is the Trigger.
+      // It MUST be a key.
+      if (e.target.closest('.key')) {
+         // IT IS A KEY.
+         // Do NOT prevent default. 
+         // Allow the event to bubble to the Key's own listener.
+         // The key listener will add the digit and call attemptUnlock.
+      } else {
+         // They tapped background on the final step.
+         // Do nothing. Wait for them to hit a key.
+      }
   }
 }, {capture: true});
 
@@ -135,7 +154,7 @@ function attachKeyEvents(container, handler) {
   container.querySelectorAll('.key').forEach(key => {
     if (key.classList.contains('empty')) return;
     key.addEventListener('touchstart', (e) => {
-      // Don't prevent default, allow global listener to inspect
+      // Standard processing
       const digit = key.getAttribute('data-digit');
       handler(digit);
       key.classList.add('active');
@@ -169,34 +188,34 @@ function handleDialerTap(digit) {
 }
 
 function attemptUnlock() {
-  // If Ghost Mode is Active and we have tapped 6+ times, we skip validation
-  const isGhostTrigger = (ghostMode && ghostTapCount >= 6);
-
-  // Standard Error Check (only if NOT ghost triggered)
-  if (!isGhostTrigger && enteredCode.length === maxDigits && currentErrors < forcedErrors) {
-    currentErrors++;
-    let resultText = enteredCode;
-    
-    // Zodiac Check (1st Error)
-    if (currentErrors === 1) {
-      const d = parseInt(enteredCode.substring(0, 2), 10);
-      const m = parseInt(enteredCode.substring(2, 4), 10);
-      const sign = getZodiacSign(d, m);
-      if (sign) {
-        resultText = sign;
-        detectedZodiac = sign; 
+  // If Ghost Mode is Active, we BYPASS error checks on a full code.
+  // This allows random inputs (fake digits) + last digit to unlock successfully.
+  
+  if (!ghostMode) {
+      // Standard Logic: Check against forced errors
+      if (enteredCode.length === maxDigits && currentErrors < forcedErrors) {
+        currentErrors++;
+        let resultText = enteredCode;
+        
+        // Zodiac Check (1st Error)
+        if (currentErrors === 1) {
+          const d = parseInt(enteredCode.substring(0, 2), 10);
+          const m = parseInt(enteredCode.substring(2, 4), 10);
+          const sign = getZodiacSign(d, m);
+          if (sign) {
+            resultText = sign;
+            detectedZodiac = sign; 
+          }
+        }
+        historyLog.push(resultText);
+        triggerError();
+        return;
       }
-    }
-    historyLog.push(resultText);
-    triggerError();
-    return;
   }
   
   // UNLOCK PHASE
   let result = 0;
-  // If ghost triggered with empty code, we just do Ref Number? 
-  // Or if they typed 1 digit (the ghost trigger digit), we use that?
-  // Let's rely on calculating based on enteredCode if it exists, otherwise 0.
+  // Calculate based on what is in enteredCode (could be random garbage + last digit)
   const inputNum = enteredCode ? parseInt(enteredCode, 10) : 0;
   result = inputNum - referenceNumber;
 
@@ -205,9 +224,8 @@ function attemptUnlock() {
     historyResult.style.display = 'none'; 
     notesContent.classList.add('active');
     
-    // --- UPDATED SCRIPT ---
+    // Script
     let htmlContent = `<span class="note-header">Intuition Log</span>`;
-    
     htmlContent += `Earlier today, someone came to mind.\n\n`;
     htmlContent += `I couldn’t tell if it was someone I already knew\nor someone I hadn’t met yet.\n\n`;
     htmlContent += `The feeling stayed.\n\n`;
@@ -251,7 +269,6 @@ function unlock() {
   enteredCode = "";
   renderDots();
   currentErrors = 0; 
-  ghostTapCount = 0; 
   updateWallpaper(); 
 }
 
@@ -259,11 +276,17 @@ function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
   dialerScreen.classList.remove('active');
+  
+  // Reset Results
   magicResult.textContent = "";
   historyLog = [];
   historyResult.innerHTML = "";
   detectedZodiac = null; 
-  ghostTapCount = 0; 
+  
+  // Reset Notes (Fix Overlay Issue)
+  notesContent.classList.remove('active');
+  notesContent.innerHTML = "";
+  
   updateWallpaper(); 
 }
 
