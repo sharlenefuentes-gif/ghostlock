@@ -1,156 +1,92 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1" />
-  
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Magic Lock">
+<div id="settingsOverlay" class="settings-overlay">
+  <div class="settings-sheet">
+    <div class="sheet-header">
+      <div class="sheet-title">Settings</div>
+    </div>
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/jpeg" href="icon.jpg">
-  <link rel="apple-touch-icon" href="icon.jpg"> 
-  
-  <title>Ghost Lock</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  
-  <div id="bgContainer">
-    <img id="wallpaperImg" src="" alt="" />
-  </div>
+    <div class="tab-group">
+      <button class="tab-btn active">General</button>
+      <button class="tab-btn">Guide</button>
+    </div>
 
-  <div class="app">
-    
-    <main class="homescreen" id="homescreen">
-      <div id="magicResult" class="magic-result"></div>
-      <div id="historyResult" class="history-result"></div>
-      <div id="notesContent" class="notes-content"></div>
-    </main>
-
-    <main class="lockscreen" id="lockscreen">
-      <div class="status-bar-spacer"></div>
-
-      <div class="content-wrapper">
-        <div class="passcode-panel" id="panel">
-          <div class="prompt" id="promptText">Enter Passcode</div>
-          <div class="dots" id="dots"></div>
-          <div class="keypad" id="keypad"></div>
+    <div class="menu-section active">
+      <div class="list-group">
+        <div class="list-item">
+          <span>Reference Number</span>
+          <input type="number" id="refInput" class="clean-input" placeholder="0">
+        </div>
+        <div class="list-item">
+          <span>Code Length</span>
+          <input type="number" id="lenInput" class="clean-input" placeholder="6">
+        </div>
+        <div class="list-item">
+          <span>Forced Errors</span>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button class="stepper-btn" id="decErrors">−</button>
+            <span id="errorCountDisplay" style="width:20px; text-align:center;">0</span>
+            <button class="stepper-btn" id="incErrors">+</button>
+          </div>
         </div>
       </div>
 
-      <div class="lock-footer-banner">
-        <div class="footer-button" id="emergencyBtn">Emergency</div>
-        <div class="footer-button" id="cancelFooterBtn">Cancel</div>
-      </div>
-    </main>
+      <div class="list-group">
+        <div class="list-item">
+          <span>Notes Mode</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="notesToggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+        
+        <div class="list-item" id="nameInputRow" style="display:none;">
+          <span>Spectator Name</span>
+          <input type="text" id="spectatorName" class="clean-input" placeholder="Name">
+        </div>
+        
+        <div class="list-item" id="notesUploadRow" style="display:none;">
+          <span>Notes Background</span>
+          <button class="upload-btn" id="btnUploadNotes">Upload</button>
+        </div>
 
-    <div class="dialer-screen" id="dialerScreen">
-      <div class="dialer-display" id="dialerDisplay"></div>
-      <div class="dialer-pad-wrapper">
-        <div class="keypad" id="dialerKeypad"></div>
-        <div class="call-btn">
-          <svg class="call-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+        <div class="list-item">
+          <span>Ghost Lock</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="ghostToggle">
+            <span class="slider"></span>
+          </label>
         </div>
       </div>
-      <div class="dialer-tabs">
-        <div class="tab-item"><span class="tab-icon">★</span>Favorites</div>
-        <div class="tab-item"><span class="tab-icon">🕒</span>Recents</div>
-        <div class="tab-item"><span class="tab-icon">👤</span>Contacts</div>
-        <div class="tab-item selected"><span class="tab-icon">#</span>Keypad</div>
-        <div class="tab-item"><span class="tab-icon">∞</span>Voicemail</div>
+      
+      <div class="credits-sub">Magical Lockscreen OS v2.0</div>
+    </div>
+
+    <div class="menu-section">
+      <div class="list-group">
+        <div class="guide-text">
+          <div class="guide-row">
+            <strong>The Main Effect</strong>
+            <span>Set a <em>Reference Number</em> above (e.g. 4050). The spectator enters their number (e.g. 4058). The app subtracts the Reference from their Input (4058 - 4050 = 8). The result "8" is revealed as the "Phone Password" upon unlocking.</span>
+          </div>
+          <div class="guide-row">
+            <strong>Notes Mode</strong>
+            <span>Instead of a number, the phone unlocks to a specific Note. This reveals the Spectator's Name and their Zodiac Sign (if enabled via errors).</span>
+          </div>
+          <div class="guide-row">
+            <strong>Ghost Lock</strong>
+            <span>Allows you to tap <em>anywhere</em> on the screen to simulate dots. Tap background for fake dots; tap a specific Key for the final dot to unlock.</span>
+          </div>
+          <div class="guide-row">
+            <strong>Gestures</strong>
+            <span>
+              • 2-Finger Swipe Down: Open Settings<br>
+              • Double Tap Top Left/Right: Upload Wallpapers<br>
+              • Tap Bottom Center (3x): Re-Lock Phone
+            </span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div id="settingsOverlay" class="settings-overlay">
-      <div class="settings-sheet">
-        <div class="sheet-header">
-          <div class="sheet-title">Magic Settings</div>
-        </div>
-
-        <div class="tab-group">
-          <button class="tab-btn active" onclick="switchTab('config')">Config</button>
-          <button class="tab-btn" onclick="switchTab('guide')">Guide</button>
-        </div>
-
-        <div class="sheet-content">
-          <div id="tab-config" class="menu-section active">
-            
-            <div class="list-group">
-              <div class="list-item">
-                <div class="label">Reference Code</div>
-                <input type="number" id="refInput" class="clean-input" value="4050" inputmode="numeric">
-              </div>
-              <div class="list-item">
-                <div class="label">Passcode Length</div>
-                <input type="number" id="lenInput" class="clean-input" placeholder="4 or 6">
-              </div>
-            </div>
-
-            <div class="list-group">
-              <div class="list-item">
-                <div class="label">Forced Errors</div>
-                <div class="value">
-                  <button id="decErrors" class="stepper-btn">−</button>
-                  <span id="errorCountDisplay">0</span>
-                  <button id="incErrors" class="stepper-btn">+</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="list-group">
-              <div class="list-item">
-                <div class="label">Ghost Unlock</div>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="ghostToggle">
-                  <span class="slider"></span>
-                </label>
-              </div>
-              <div class="list-item">
-                <div class="label">Notes Mode</div>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="notesToggle">
-                  <span class="slider"></span>
-                </label>
-              </div>
-              <div class="list-item" id="nameInputRow" style="display:none;">
-                <div class="label">Spectator Name</div>
-                <input type="text" id="spectatorName" class="clean-input" placeholder="Name">
-              </div>
-              <div class="list-item" id="notesUploadRow" style="display:none;">
-                <div class="label">Notes Background</div>
-                <button id="btnUploadNotes" class="upload-btn">Upload Image</button>
-              </div>
-            </div>
-          </div>
-
-          <div id="tab-guide" class="menu-section">
-            <div class="guide-row"><span><strong>Ghost Mode</strong><br>Tap ANYWHERE 5 times (fills 5 dots). Tap a KEYPAD KEY for the 6th tap to unlock.</span></div>
-            <div class="guide-row"><span><strong>Haptics</strong><br>Uses vibration on Android. Uses acoustic clicks on iOS.</span></div>
-            <div class="guide-row"><span><strong>Notes Reveal</strong><br>Enable Notes Mode. The "Intuition Log" predicts the generated number.</span></div>
-          </div>
-        </div>
-
-        <button id="closeSettingsBtn" class="close-action">Done</button>
-      </div>
-    </div>
-
-    <input id="uploadLock" type="file" accept="image/*" style="display: none" />
-    <input id="uploadHome" type="file" accept="image/*" style="display: none" />
-    <input id="uploadNotes" type="file" accept="image/*" style="display: none" />
-
+    <button id="closeSettingsBtn" class="close-action">Done</button>
   </div>
-  
-  <script src="script.js"></script>
-  <script>
-    function switchTab(t){
-      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-      document.querySelectorAll('.menu-section').forEach(s=>s.classList.remove('active'));
-      if(t==='config'){document.querySelector('.tab-btn:nth-child(1)').classList.add('active');document.getElementById('tab-config').classList.add('active');}
-      else{document.querySelector('.tab-btn:nth-child(2)').classList.add('active');document.getElementById('tab-guide').classList.add('active');}
-    }
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
-  </script>
-</body>
-</html>
+</div>
