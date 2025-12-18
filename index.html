@@ -1,179 +1,188 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lock Screen Magic</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1" />
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Magic Lock">
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/jpeg" href="icon.jpg">
+  <link rel="apple-touch-icon" href="icon.jpg"> 
+  
+  <title>Lock Screen Magic</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+  
+  <div id="bgContainer">
+    <img id="wallpaperImg" src="" alt="" />
+  </div>
+
+  <div class="app">
+    
+    <main class="homescreen" id="homescreen">
+      <div class="status-bar light">
+          <span class="left">9:41</span>
+          <div class="right">
+              <i class="fas fa-signal"></i>
+              <i class="fas fa-wifi"></i>
+              <i class="fas fa-battery-full"></i>
+          </div>
+      </div>
+
+      <div id="magicResult" class="magic-result"></div>
+      <div id="historyResult" class="history-result"></div>
+      <div id="notesContent" class="notes-content"></div>
+
+      <div class="dock" style="position: absolute; bottom: 20px; width: 90%; left: 5%; height: 90px; background: rgba(255,255,255,0.2); backdrop-filter: blur(15px); border-radius: 30px; display: flex; justify-content: space-around; align-items: center;">
+          <div class="icon" style="width: 55px; height: 55px; background: #4CD964; border-radius: 14px; display: grid; place-items: center; color: white; font-size: 24px;"><i class="fas fa-phone"></i></div>
+          <div class="icon" style="width: 55px; height: 55px; background: #5AC8FA; border-radius: 14px; display: grid; place-items: center; color: white; font-size: 24px;"><i class="fas fa-envelope"></i></div>
+          <div class="icon" style="width: 55px; height: 55px; background: #FF9500; border-radius: 14px; display: grid; place-items: center; color: white; font-size: 24px;"><i class="fas fa-globe"></i></div>
+          <div class="icon" style="width: 55px; height: 55px; background: #FF2D55; border-radius: 14px; display: grid; place-items: center; color: white; font-size: 24px;"><i class="fas fa-music"></i></div>
+      </div>
+    </main>
+
+    <main class="lockscreen" id="lockscreen">
+      <div class="status-bar">
+          <span class="left">9:41</span>
+          <div class="right">
+              <i class="fas fa-signal"></i>
+              <i class="fas fa-wifi"></i>
+              <i class="fas fa-battery-full"></i>
+          </div>
+      </div>
+
+      <div class="content-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%;">
+        <div class="lock-pad" style="margin-bottom: 20px; text-align: center; color: white;">
+            <i class="fas fa-lock open-icon" style="font-size: 20px; margin-bottom: 10px;"></i>
+            <div class="time-big" style="font-size: 80px; font-weight: 200; line-height: 1;">9:41</div>
+            <div class="date-small" style="font-size: 20px; font-weight: 500;">Thursday, 18 December</div>
+        </div>
+
+        <div class="passcode-panel" id="panel">
+          <div class="prompt" id="promptText" style="color: white; margin-bottom: 15px; font-weight: 500;">Enter Passcode</div>
+          <div class="dots" id="dots" style="display: flex; gap: 15px; margin-bottom: 30px; justify-content: center;"></div>
+          <div class="keypad" id="keypad" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;"></div>
+        </div>
+      </div>
+
+      <div class="lock-footer-banner" style="position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-between; padding: 0 40px; color: white; font-weight: 600;">
+        <div class="footer-button" id="emergencyBtn">Emergency</div>
+        <div class="footer-button" id="cancelFooterBtn">Cancel</div>
+      </div>
+    </main>
+
+    <div class="dialer-screen" id="dialerScreen">
+      <div class="dialer-display" id="dialerDisplay"></div>
+      <div class="dialer-pad-wrapper">
+        <div class="keypad" id="dialerKeypad"></div>
+        <div class="call-btn">
+          <i class="fas fa-phone"></i>
+        </div>
+      </div>
+    </div>
 
     <div id="settingsOverlay" class="settings-overlay">
-        <div class="settings-sheet">
-            <div class="sheet-header">
-                <div class="sheet-title">Settings</div>
-            </div>
-    
-            <div class="tab-group">
-                <button class="tab-btn active">General</button>
-                <button class="tab-btn">Guide</button>
-            </div>
-    
-            <div class="menu-section active">
-                <div class="list-group">
-                    <div class="list-item">
-                        <span>Reference Number</span>
-                        <input type="number" id="refInput" class="clean-input" placeholder="0">
-                    </div>
-                    <div class="list-item">
-                        <span>Code Length</span>
-                        <input type="number" id="lenInput" class="clean-input" placeholder="6">
-                    </div>
-                    <div class="list-item">
-                        <span>Forced Errors</span>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <button class="stepper-btn" id="decErrors">−</button>
-                            <span id="errorCountDisplay" style="width:20px; text-align:center;">0</span>
-                            <button class="stepper-btn" id="incErrors">+</button>
-                        </div>
-                    </div>
+      <div class="settings-sheet">
+        <div class="sheet-header">
+          <div class="sheet-title">Settings</div>
+        </div>
+
+        <div class="tab-group">
+          <button class="tab-btn active">General</button>
+          <button class="tab-btn">Guide</button>
+        </div>
+
+        <div class="menu-section active">
+           <div class="list-group">
+              <div class="list-item">
+                <span>Reference Number</span>
+                <input type="number" id="refInput" class="clean-input" placeholder="0">
+              </div>
+              <div class="list-item">
+                <span>Code Length</span>
+                <input type="number" id="lenInput" class="clean-input" placeholder="6">
+              </div>
+              <div class="list-item">
+                <span>Forced Errors</span>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <button class="stepper-btn" id="decErrors">−</button>
+                    <span id="errorCountDisplay" style="width:20px; text-align:center;">0</span>
+                    <button class="stepper-btn" id="incErrors">+</button>
                 </div>
-    
-                <div class="list-group">
-                    <div class="list-item">
-                        <span>Notes Mode</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="notesToggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="list-item" id="nameInputRow" style="display:none;">
-                        <span>Spectator Name</span>
-                        <input type="text" id="spectatorName" class="clean-input" placeholder="Name">
-                    </div>
-                    
-                    <div class="list-item" id="notesUploadRow" style="display:none;">
-                        <span>Notes Background</span>
-                        <button class="upload-btn" id="btnUploadNotes">Upload</button>
-                    </div>
-    
-                    <div class="list-item">
-                        <span>Ghost Lock</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="ghostToggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
+              </div>
+           </div>
+
+           <div class="list-group">
+              <div class="list-item">
+                <span>Notes Mode</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="notesToggle">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              
+              <div class="list-item" id="nameInputRow" style="display:none;">
+                <span>Spectator Name</span>
+                <input type="text" id="spectatorName" class="clean-input" placeholder="Name">
+              </div>
+              
+              <div class="list-item" id="notesUploadRow" style="display:none;">
+                <span>Notes Background</span>
+                <button id="btnUploadNotes" class="upload-btn">Upload</button>
+              </div>
+
+              <div class="list-item">
+                <span>Ghost Lock</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="ghostToggle">
+                  <span class="slider"></span>
+                </label>
+              </div>
+           </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="list-group">
+            <div class="guide-text" style="padding: 15px; font-size: 14px; line-height: 1.5; color: #333;">
+                <div class="guide-row" style="margin-bottom: 15px;">
+                    <strong>The Main Effect</strong><br>
+                    <span style="opacity: 0.7;">Set a Reference Number above (e.g. 4050). The spectator enters their number (e.g. 4058). The app subtracts the Reference from the Input (4058 - 4050 = 8). The result "8" is revealed as the "Phone Password".</span>
                 </div>
-                
-                <div class="credits-sub">Magical Lockscreen OS v2.0</div>
-            </div>
-    
-            <div class="menu-section">
-                <div class="list-group">
-                    <div class="guide-text">
-                        <div class="guide-row">
-                            <strong>The Main Effect</strong>
-                            <span>Set a <em>Reference Number</em> in General settings (e.g. 4050). The spectator enters their secret number (e.g. 4058). The app subtracts the Reference from their Input (4058 - 4050 = 8). The result "8" is revealed on the home screen.</span>
-                        </div>
-                        <div class="guide-row">
-                            <strong>Notes Mode</strong>
-                            <span>Instead of a number, the phone unlocks to a specific Note. This reveals the Spectator's Name and their Zodiac Sign (if enabled via errors).</span>
-                        </div>
-                        <div class="guide-row">
-                            <strong>Ghost Lock</strong>
-                            <span>Allows you to tap <em>anywhere</em> on the screen to simulate dots. Tap background for fake dots; tap a specific Key for the final dot to unlock.</span>
-                        </div>
-                        <div class="guide-row">
-                            <strong>Gestures</strong>
-                            <span>
-                                • 2-Finger Swipe Down: Open Settings<br>
-                                • Double Tap Top Left/Right: Upload Wallpapers<br>
-                                • Tap Bottom Center (3x): Re-Lock Phone
-                            </span>
-                        </div>
-                    </div>
+                <div class="guide-row" style="margin-bottom: 15px;">
+                    <strong>Notes Mode</strong><br>
+                    <span style="opacity: 0.7;">Instead of a number, the phone unlocks to a Note. This reveals the Spectator's Name and Zodiac (if errors triggered).</span>
+                </div>
+                <div class="guide-row" style="margin-bottom: 15px;">
+                    <strong>Ghost Lock</strong><br>
+                    <span style="opacity: 0.7;">Tap anywhere on the background to create fake dots. Tap a Key to register a real dot. Unlocks on the final digit.</span>
+                </div>
+                 <div class="guide-row">
+                    <strong>Gestures</strong><br>
+                    <span style="opacity: 0.7;">
+                    • 2-Finger Swipe Down: Settings<br>
+                    • Double Tap Top Left/Right: Upload Wallpapers<br>
+                    • Tap Bottom Center (3x): Re-Lock Phone
+                    </span>
                 </div>
             </div>
-    
-            <button id="closeSettingsBtn" class="close-action">Done</button>
+          </div>
         </div>
+
+        <button id="closeSettingsBtn" class="close-action">Done</button>
+      </div>
     </div>
 
-    <div id="lockscreen">
-        <img id="wallpaperImg" src="" alt="Wallpaper">
-        <div class="status-bar">
-            <span class="left">9:41</span>
-            <div class="right">
-                <i class="fas fa-signal"></i>
-                <i class="fas fa-wifi"></i>
-                <i class="fas fa-battery-full"></i>
-            </div>
-        </div>
+    <input id="uploadLock" type="file" accept="image/*" style="display: none" />
+    <input id="uploadHome" type="file" accept="image/*" style="display: none" />
+    <input id="uploadNotes" type="file" accept="image/*" style="display: none" />
 
-        <div class="lock-pad">
-            <i class="fas fa-lock open-icon"></i>
-            <div class="time-display">
-                <div class="time-big">9:41</div>
-                <div class="date-small">Thursday, 18 December</div>
-            </div>
-        </div>
-
-        <div class="input-area">
-            <div class="dots" id="dots">
-                </div>
-        </div>
-
-        <div class="keypad" id="keypad">
-            </div>
-
-        <div class="footer-actions">
-            <div class="round-btn"><i class="fas fa-flashlight"></i></div>
-            <div class="text-btn" id="cancelFooterBtn">Cancel</div>
-            <div class="text-btn" id="emergencyBtn">Emergency</div>
-            <div class="round-btn"><i class="fas fa-camera"></i></div>
-        </div>
-
-        <div class="home-bar"></div>
-    </div>
-
-    <div id="homescreen">
-        <div class="status-bar light">
-            <span class="left">9:41</span>
-            <div class="right">
-                <i class="fas fa-signal"></i>
-                <i class="fas fa-wifi"></i>
-                <i class="fas fa-battery-full"></i>
-            </div>
-        </div>
-
-        <div id="magicResult"></div>
-        <div id="historyResult"></div>
-        <div id="notesContent"></div>
-
-        <div class="dock">
-            <div class="icon" style="background: #4CD964;"><i class="fas fa-phone"></i></div>
-            <div class="icon" style="background: #5AC8FA;"><i class="fas fa-envelope"></i></div>
-            <div class="icon" style="background: #FF9500;"><i class="fas fa-globe"></i></div>
-            <div class="icon" style="background: #FF2D55;"><i class="fas fa-music"></i></div>
-        </div>
-        <div class="home-bar-black"></div>
-    </div>
-
-    <div id="dialerScreen">
-        <div class="dialer-display" id="dialerDisplay"></div>
-        <div class="keypad dialer-pad" id="dialerKeypad">
-            </div>
-        <div class="call-btn"><i class="fas fa-phone"></i></div>
-        <div class="home-bar"></div>
-    </div>
-
-    <input type="file" id="uploadLock" accept="image/*" hidden>
-    <input type="file" id="uploadHome" accept="image/*" hidden>
-    <input type="file" id="uploadNotes" accept="image/*" hidden>
-
-    <script src="script.js"></script>
+  </div>
+  
+  <script src="script.js"></script>
 </body>
 </html>
