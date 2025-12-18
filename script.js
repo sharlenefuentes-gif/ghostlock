@@ -12,6 +12,7 @@ let isUnlocked = false;
 let currentErrors = 0; 
 let historyLog = [];
 let detectedZodiac = null;
+let ghostTapCount = 0; 
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
@@ -54,17 +55,50 @@ const decErrors = document.getElementById('decErrors');
 const incErrors = document.getElementById('incErrors');
 const btnUploadNotes = document.getElementById('btnUploadNotes');
 
+// --- AUDIO HAPTICS (iOS Fix) ---
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) audioCtx = new AudioContext();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function triggerHaptic() {
+  // 1. Android Vibration
+  if (navigator.vibrate) navigator.vibrate(15);
+  
+  // 2. iOS "Acoustic Haptic" (Micro Click)
+  if (audioCtx) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.03);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.03);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.03);
+  }
+}
+
 // --- INITIALIZATION ---
 loadSettings(); 
 initLockKeypad();
 initDialerKeypad();
 renderDots();
 
+// Initialize Audio on first touch anywhere
+document.addEventListener('touchstart', initAudio, {once:true});
+document.addEventListener('click', initAudio, {once:true});
+
 // --- GHOST UNLOCK LOGIC ---
-// Catches touches globally. 
-// Logic:
-// 1. Taps 1 to (Max-1): Adds a random "fake" digit to fill the dots.
-// 2. Tap Max: MUST be on a real Keypad Key. This triggers the standard handler.
+// Listens for ANY touch on the screen
 document.addEventListener('touchstart', (e) => {
   if (isUnlocked || !ghostMode) return;
   if (settingsOverlay.classList.contains('open')) return;
@@ -85,18 +119,14 @@ document.addEventListener('touchstart', (e) => {
       const randomDigit = Math.floor(Math.random() * 10).toString();
       enteredCode += randomDigit;
       renderDots();
-      
-      // Haptic feedback
-      if(navigator.vibrate) navigator.vibrate(20);
+      triggerHaptic();
   } 
   else if (enteredCode.length === maxDigits - 1) {
       // We are at 5/6 dots. The NEXT tap is the Trigger.
       // It MUST be a key.
       if (e.target.closest('.key')) {
-         // IT IS A KEY.
-         // Do NOT prevent default. 
-         // Allow the event to bubble to the Key's own listener.
-         // The key listener will add the digit and call attemptUnlock.
+         // It is a key! Let the standard handler take over.
+         // It will add the digit + trigger unlock.
       } else {
          // They tapped background on the final step.
          // Do nothing. Wait for them to hit a key.
@@ -154,10 +184,11 @@ function attachKeyEvents(container, handler) {
   container.querySelectorAll('.key').forEach(key => {
     if (key.classList.contains('empty')) return;
     key.addEventListener('touchstart', (e) => {
-      // Standard processing
+      // Don't prevent default, allow global listener to inspect
       const digit = key.getAttribute('data-digit');
       handler(digit);
       key.classList.add('active');
+      triggerHaptic();
       setTimeout(() => key.classList.remove('active'), 100);
     }, { passive: true });
   });
@@ -185,6 +216,7 @@ function handleLockTap(digit) {
 
 function handleDialerTap(digit) {
   dialerDisplay.textContent += digit;
+  triggerHaptic();
 }
 
 function attemptUnlock() {
@@ -224,20 +256,21 @@ function attemptUnlock() {
     historyResult.style.display = 'none'; 
     notesContent.classList.add('active');
     
-    // Script
-    let htmlContent = `<span class="note-header">Intuition Log</span>`;
+    // --- UPDATED SCRIPT ---
+    let htmlContent = `<span class="note-header">INTUITION LOG</span>`;
+    
     htmlContent += `Earlier today, someone came to mind.\n\n`;
     htmlContent += `I couldn’t tell if it was someone I already knew\nor someone I hadn’t met yet.\n\n`;
     htmlContent += `The feeling stayed.\n\n`;
     htmlContent += `A name surfaced.\n`;
-    htmlContent += `${spectatorName}\n\n`;
+    htmlContent += `<strong>${spectatorName}</strong>\n\n`;
     
     if (detectedZodiac) {
-      htmlContent += `Along with a personality that felt much of a ${detectedZodiac}.\n\n`;
+      htmlContent += `Along with a personality that felt much of a <strong>${detectedZodiac}</strong>.\n\n`;
     }
     
     htmlContent += `Then a number followed.\nNot random.\n\n`;
-    htmlContent += `${result}\n\n`;
+    htmlContent += `<strong>${result}</strong>\n\n`;
     htmlContent += `Intuition or not, still amazes me.`;
     
     notesContent.innerHTML = htmlContent;
@@ -269,6 +302,7 @@ function unlock() {
   enteredCode = "";
   renderDots();
   currentErrors = 0; 
+  ghostTapCount = 0; 
   updateWallpaper(); 
 }
 
@@ -286,6 +320,9 @@ function reLock() {
   // Reset Notes (Fix Overlay Issue)
   notesContent.classList.remove('active');
   notesContent.innerHTML = "";
+  
+  // Reset Ghost
+  ghostTapCount = 0;
   
   updateWallpaper(); 
 }
