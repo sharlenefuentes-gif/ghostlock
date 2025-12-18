@@ -75,15 +75,15 @@ function triggerHaptic() {
   if (audioCtx) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.03);
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.03);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.03);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(100, t + 0.02);
+  
+    gain.gain.setValueAtTime(0.5, t); // Volume
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.02);
+  
+    osc.start(t);
+    osc.stop(t + 0.02);
   }
 }
 
