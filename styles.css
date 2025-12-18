@@ -135,7 +135,7 @@ main {
   transform: translateZ(0); display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; position: relative; transition: background-color 0.15s, transform 0.1s;
 }
-.key:active, .key.active { background-color: rgba(255, 255, 255, 0.4); transform: scale(0.92) translateZ(0); }
+.key:active, .key.active { background-color: rgba(255, 255, 255, 0.4) !important; transform: scale(0.92) translateZ(0);
 .key-digit { font-size: 34px; font-weight: 400; line-height: 1; margin-bottom: 2px; pointer-events: none; }
 .key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; pointer-events: none; }
 .key.empty { visibility: hidden; pointer-events: none; }
