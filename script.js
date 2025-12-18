@@ -55,7 +55,7 @@ const decErrors = document.getElementById('decErrors');
 const incErrors = document.getElementById('incErrors');
 const btnUploadNotes = document.getElementById('btnUploadNotes');
 
-// --- AUDIO HAPTICS (REMASTERED) ---
+// --- AUDIO HAPTICS (LOW VOLUME) ---
 let audioCtx = null;
 
 function initAudio() {
@@ -69,10 +69,10 @@ function initAudio() {
 }
 
 function triggerHaptic() {
-  // 1. Android Native Vibration
-  if (navigator.vibrate) navigator.vibrate(15);
+  // 1. Android Native Vibration (Still nice to have)
+  if (navigator.vibrate) navigator.vibrate(10); // Reduced to 10ms for subtler feel
   
-  // 2. iOS "Acoustic Haptic" (Glass Tap)
+  // 2. iOS "Acoustic Haptic" (Subtle Click)
   if (!audioCtx) return;
 
   const t = audioCtx.currentTime;
@@ -87,8 +87,10 @@ function triggerHaptic() {
   osc.frequency.setValueAtTime(800, t);
   osc.frequency.exponentialRampToValueAtTime(100, t + 0.02);
   
-  gain.gain.setValueAtTime(0.5, t); // Volume
-  gain.gain.exponentialRampToValueAtTime(0.01, t + 0.02);
+  // VOLUME SETTING: 0.15 (approx 30% of previous loudness)
+  // This keeps it quiet even if system volume is high.
+  gain.gain.setValueAtTime(0.15, t); 
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
   
   osc.start(t);
   osc.stop(t + 0.02);
@@ -181,7 +183,7 @@ function initDialerKeypad() {
   attachKeyEvents(dialerKeypad, handleDialerTap);
 }
 
-// --- UPDATED KEY HANDLER (Fixes Sticky Highlight) ---
+// --- UPDATED KEY HANDLER (Fixes Sticky Highlight + New Audio) ---
 function attachKeyEvents(container, handler) {
   container.querySelectorAll('.key').forEach(key => {
     if (key.classList.contains('empty')) return;
