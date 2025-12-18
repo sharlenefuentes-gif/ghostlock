@@ -27,7 +27,6 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* --- THE WALLPAPER FIX --- */
 #bgContainer {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -45,7 +44,6 @@ html, body {
 
 .app { width: 100%; height: 100%; position: relative; overflow: hidden; }
 
-/* Mains are transparent wrappers */
 main {
   position: absolute; 
   top: 0; left: 0; right: 0; bottom: 0;
@@ -90,14 +88,13 @@ main {
 }
 .notes-content.active { display: block; }
 
-/* The Header/Title Style */
 .note-header {
   font-size: 28px; 
   font-weight: 800; 
   display: block;
   margin-bottom: 12px;
   letter-spacing: -0.5px;
-  text-transform: uppercase; /* FORCES ALL CAPS */
+  text-transform: uppercase;
 }
 
 /* --- LOCKSCREEN --- */
