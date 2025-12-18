@@ -55,8 +55,9 @@ const decErrors = document.getElementById('decErrors');
 const incErrors = document.getElementById('incErrors');
 const btnUploadNotes = document.getElementById('btnUploadNotes');
 
-// --- AUDIO HAPTICS (iOS Fix) ---
+// --- AUDIO HAPTICS (REMASTERED) ---
 let audioCtx = null;
+
 function initAudio() {
   if (!audioCtx) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -68,23 +69,29 @@ function initAudio() {
 }
 
 function triggerHaptic() {
-  // 1. Android Vibration
+  // 1. Android Native Vibration
   if (navigator.vibrate) navigator.vibrate(15);
   
-  // 2. iOS "Acoustic Haptic" (Micro Click)
-  if (audioCtx) {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(800, t);
-    osc.frequency.exponentialRampToValueAtTime(100, t + 0.02);
+  // 2. iOS "Acoustic Haptic" (Glass Tap)
+  if (!audioCtx) return;
+
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
   
-    gain.gain.setValueAtTime(0.5, t); // Volume
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.02);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  // Smooth Sine Wave ("Pop" sound)
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(800, t);
+  osc.frequency.exponentialRampToValueAtTime(100, t + 0.02);
   
-    osc.start(t);
-    osc.stop(t + 0.02);
-  }
+  gain.gain.setValueAtTime(0.5, t); // Volume
+  gain.gain.exponentialRampToValueAtTime(0.01, t + 0.02);
+  
+  osc.start(t);
+  osc.stop(t + 0.02);
 }
 
 // --- INITIALIZATION ---
@@ -98,7 +105,6 @@ document.addEventListener('touchstart', initAudio, {once:true});
 document.addEventListener('click', initAudio, {once:true});
 
 // --- GHOST UNLOCK LOGIC ---
-// Listens for ANY touch on the screen
 document.addEventListener('touchstart', (e) => {
   if (isUnlocked || !ghostMode) return;
   if (settingsOverlay.classList.contains('open')) return;
@@ -111,25 +117,20 @@ document.addEventListener('touchstart', (e) => {
   // If we need more digits to reach "1 less than max":
   if (enteredCode.length < maxDigits - 1) {
       // This is a "random" filler tap. 
-      // Prevent default to stop zooming/highlighting background elements.
       e.preventDefault();
       e.stopPropagation();
 
-      // Add a random digit (0-9) to buffer so it looks real on dots
       const randomDigit = Math.floor(Math.random() * 10).toString();
       enteredCode += randomDigit;
       renderDots();
       triggerHaptic();
   } 
   else if (enteredCode.length === maxDigits - 1) {
-      // We are at 5/6 dots. The NEXT tap is the Trigger.
-      // It MUST be a key.
+      // We are at 5/6 dots. The NEXT tap must be a key.
       if (e.target.closest('.key')) {
-         // It is a key! Let the standard handler take over.
-         // It will add the digit + trigger unlock.
+         // Let standard handler take over.
       } else {
-         // They tapped background on the final step.
-         // Do nothing. Wait for them to hit a key.
+         // Ignore background taps
       }
   }
 }, {capture: true});
@@ -180,17 +181,31 @@ function initDialerKeypad() {
   attachKeyEvents(dialerKeypad, handleDialerTap);
 }
 
+// --- UPDATED KEY HANDLER (Fixes Sticky Highlight) ---
 function attachKeyEvents(container, handler) {
   container.querySelectorAll('.key').forEach(key => {
     if (key.classList.contains('empty')) return;
+
+    // 1. Finger DOWN: Highlight + Sound + Logic
     key.addEventListener('touchstart', (e) => {
-      // Don't prevent default, allow global listener to inspect
+      // preventDefault stops the browser from treating this as a 'mouse click' 
+      // which causes the sticky highlight and double-tap zoom.
+      e.preventDefault(); 
+      
       const digit = key.getAttribute('data-digit');
       handler(digit);
-      key.classList.add('active');
       triggerHaptic();
-      setTimeout(() => key.classList.remove('active'), 100);
-    }, { passive: true });
+      
+      key.classList.add('active');
+    }, { passive: false });
+
+    // 2. Finger UP: Remove Highlight
+    const resetKey = () => {
+      setTimeout(() => key.classList.remove('active'), 70);
+    };
+
+    key.addEventListener('touchend', resetKey);
+    key.addEventListener('touchcancel', resetKey);
   });
 }
 
@@ -221,8 +236,6 @@ function handleDialerTap(digit) {
 
 function attemptUnlock() {
   // If Ghost Mode is Active, we BYPASS error checks on a full code.
-  // This allows random inputs (fake digits) + last digit to unlock successfully.
-  
   if (!ghostMode) {
       // Standard Logic: Check against forced errors
       if (enteredCode.length === maxDigits && currentErrors < forcedErrors) {
@@ -256,7 +269,6 @@ function attemptUnlock() {
     historyResult.style.display = 'none'; 
     notesContent.classList.add('active');
     
-    // --- UPDATED SCRIPT ---
     let htmlContent = `<span class="note-header">INTUITION LOG</span>`;
     
     htmlContent += `Earlier today, someone came to mind.\n\n`;
@@ -317,7 +329,7 @@ function reLock() {
   historyResult.innerHTML = "";
   detectedZodiac = null; 
   
-  // Reset Notes (Fix Overlay Issue)
+  // Reset Notes
   notesContent.classList.remove('active');
   notesContent.innerHTML = "";
   
