@@ -31,9 +31,11 @@ html, body {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   height: 100dvh; 
+  width: 100vw;
   z-index: -1; 
   pointer-events: none;
   overflow: hidden;
+  background: #000;
 }
 
 #wallpaperImg {
@@ -53,7 +55,7 @@ main {
 
 .homescreen { z-index: 1; display: block; }
 
-/* --- REVEALS --- */
+/* REVEALS */
 .magic-result {
   position: absolute; bottom: 15px; right: 20px;
   font-size: 20px; font-weight: 500;
@@ -70,11 +72,11 @@ main {
   font-variant-numeric: tabular-nums; text-transform: capitalize;
 }
 
-/* --- NOTES STYLING --- */
+/* NOTES STYLING */
 .notes-content {
   position: absolute;
   top: 130px; 
-  left: 20px; right: 20px;
+  left: 25px; right: 25px;
   
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 19px; 
@@ -89,15 +91,17 @@ main {
 .notes-content.active { display: block; }
 
 .note-header {
-  font-size: 28px; 
-  font-weight: 800; 
+  font-size: 24px; 
+  font-weight: 700; 
   display: block;
   margin-bottom: 12px;
-  letter-spacing: -0.5px;
-  text-transform: uppercase;
+  letter-spacing: -0.3px;
+  text-transform: uppercase; /* ALL CAPS */
+  color: #F8D748; /* Subtle yellow tint for 'Notes' feel, or keep white */
+  color: #fff;
 }
 
-/* --- LOCKSCREEN --- */
+/* LOCKSCREEN */
 .lockscreen { z-index: 2; }
 .lockscreen.unlocked { transform: translateY(-100%); pointer-events: none; }
 
@@ -106,7 +110,7 @@ main {
   justify-content: center; height: 100%; width: 100%; padding-bottom: 60px;
 }
 
-/* --- PASSCODE PANEL --- */
+/* UI ELEMENTS */
 .passcode-panel { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 340px; }
 .passcode-panel.shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
 @keyframes shake {
@@ -121,7 +125,6 @@ main {
 .dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.2s; }
 .dot.filled { background: #fff; }
 
-/* --- KEYPAD --- */
 .keypad { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 32px; row-gap: 18px; }
 .key {
   width: 78px; height: 78px; border-radius: 50%;
@@ -137,12 +140,7 @@ main {
 .key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; pointer-events: none; }
 .key.empty { visibility: hidden; pointer-events: none; }
 
-/* --- EMERGENCY & SETTINGS UI --- */
-.dialer-screen {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: #000; z-index: 5; display: flex; flex-direction: column; 
-  transform: translateY(100%); transition: transform 0.3s ease-out;
-}
+.dialer-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.3s ease-out; }
 .dialer-screen.active { transform: translateY(0); }
 .dialer-display { flex: 1; display: flex; align-items: flex-end; justify-content: center; font-size: 38px; font-weight: 400; padding-bottom: 40px; color: #fff; letter-spacing: 1px; }
 .dialer-pad-wrapper { display: flex; flex-direction: column; align-items: center; padding-bottom: 20px; }
