@@ -55,7 +55,7 @@ const decErrors = document.getElementById('decErrors');
 const incErrors = document.getElementById('incErrors');
 const btnUploadNotes = document.getElementById('btnUploadNotes');
 
-// --- AUDIO HAPTICS (LOW VOLUME) ---
+// --- AUDIO HAPTICS (ULTRA LOW) ---
 let audioCtx = null;
 
 function initAudio() {
@@ -70,9 +70,9 @@ function initAudio() {
 
 function triggerHaptic() {
   // 1. Android Native Vibration (Still nice to have)
-  if (navigator.vibrate) navigator.vibrate(10); // Reduced to 10ms for subtler feel
+  if (navigator.vibrate) navigator.vibrate(8); 
   
-  // 2. iOS "Acoustic Haptic" (Subtle Click)
+  // 2. iOS "Acoustic Haptic" (Micro Click)
   if (!audioCtx) return;
 
   const t = audioCtx.currentTime;
@@ -82,18 +82,16 @@ function triggerHaptic() {
   osc.connect(gain);
   gain.connect(audioCtx.destination);
 
-  // Smooth Sine Wave ("Pop" sound)
   osc.type = 'sine';
   osc.frequency.setValueAtTime(800, t);
-  osc.frequency.exponentialRampToValueAtTime(100, t + 0.02);
+  osc.frequency.exponentialRampToValueAtTime(100, t + 0.015);
   
-  // VOLUME SETTING: 0.15 (approx 30% of previous loudness)
-  // This keeps it quiet even if system volume is high.
-  gain.gain.setValueAtTime(0.15, t); 
-  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+  // VOLUME: 0.05 (5%) - Very faint
+  gain.gain.setValueAtTime(0.05, t); 
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
   
   osc.start(t);
-  osc.stop(t + 0.02);
+  osc.stop(t + 0.015);
 }
 
 // --- INITIALIZATION ---
@@ -101,6 +99,7 @@ loadSettings();
 initLockKeypad();
 initDialerKeypad();
 renderDots();
+initSettingsTabs(); // New tab handler
 
 // Initialize Audio on first touch anywhere
 document.addEventListener('touchstart', initAudio, {once:true});
@@ -183,29 +182,20 @@ function initDialerKeypad() {
   attachKeyEvents(dialerKeypad, handleDialerTap);
 }
 
-// --- UPDATED KEY HANDLER (Fixes Sticky Highlight + New Audio) ---
+// --- KEY HANDLER ---
 function attachKeyEvents(container, handler) {
   container.querySelectorAll('.key').forEach(key => {
     if (key.classList.contains('empty')) return;
 
-    // 1. Finger DOWN: Highlight + Sound + Logic
     key.addEventListener('touchstart', (e) => {
-      // preventDefault stops the browser from treating this as a 'mouse click' 
-      // which causes the sticky highlight and double-tap zoom.
       e.preventDefault(); 
-      
       const digit = key.getAttribute('data-digit');
       handler(digit);
       triggerHaptic();
-      
       key.classList.add('active');
     }, { passive: false });
 
-    // 2. Finger UP: Remove Highlight
-    const resetKey = () => {
-      setTimeout(() => key.classList.remove('active'), 70);
-    };
-
+    const resetKey = () => { setTimeout(() => key.classList.remove('active'), 70); };
     key.addEventListener('touchend', resetKey);
     key.addEventListener('touchcancel', resetKey);
   });
@@ -237,22 +227,15 @@ function handleDialerTap(digit) {
 }
 
 function attemptUnlock() {
-  // If Ghost Mode is Active, we BYPASS error checks on a full code.
   if (!ghostMode) {
-      // Standard Logic: Check against forced errors
       if (enteredCode.length === maxDigits && currentErrors < forcedErrors) {
         currentErrors++;
         let resultText = enteredCode;
-        
-        // Zodiac Check (1st Error)
         if (currentErrors === 1) {
           const d = parseInt(enteredCode.substring(0, 2), 10);
           const m = parseInt(enteredCode.substring(2, 4), 10);
           const sign = getZodiacSign(d, m);
-          if (sign) {
-            resultText = sign;
-            detectedZodiac = sign; 
-          }
+          if (sign) { resultText = sign; detectedZodiac = sign; }
         }
         historyLog.push(resultText);
         triggerError();
@@ -260,35 +243,26 @@ function attemptUnlock() {
       }
   }
   
-  // UNLOCK PHASE
-  let result = 0;
-  // Calculate based on what is in enteredCode (could be random garbage + last digit)
   const inputNum = enteredCode ? parseInt(enteredCode, 10) : 0;
-  result = inputNum - referenceNumber;
+  const result = inputNum - referenceNumber;
 
   if (notesMode) {
     magicResult.style.display = 'none';
     historyResult.style.display = 'none'; 
     notesContent.classList.add('active');
-    
     let htmlContent = `<span class="note-header">INTUITION LOG</span>`;
-    
     htmlContent += `Earlier today, someone came to mind.\n\n`;
     htmlContent += `I couldn’t tell if it was someone I already knew\nor someone I hadn’t met yet.\n\n`;
     htmlContent += `The feeling stayed.\n\n`;
     htmlContent += `A name surfaced.\n`;
     htmlContent += `<strong>${spectatorName}</strong>\n\n`;
-    
     if (detectedZodiac) {
       htmlContent += `Along with a personality that felt much of a <strong>${detectedZodiac}</strong>.\n\n`;
     }
-    
     htmlContent += `Then a number followed.\nNot random.\n\n`;
     htmlContent += `<strong>${result}</strong>\n\n`;
     htmlContent += `Intuition or not, still amazes me.`;
-    
     notesContent.innerHTML = htmlContent;
-    
   } else {
     magicResult.style.display = 'block';
     historyResult.style.display = 'flex';
@@ -296,7 +270,6 @@ function attemptUnlock() {
     magicResult.textContent = result;
     updateHistoryDisplay();
   }
-  
   unlock();
 }
 
@@ -324,20 +297,13 @@ function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
   dialerScreen.classList.remove('active');
-  
-  // Reset Results
   magicResult.textContent = "";
   historyLog = [];
   historyResult.innerHTML = "";
   detectedZodiac = null; 
-  
-  // Reset Notes
   notesContent.classList.remove('active');
   notesContent.innerHTML = "";
-  
-  // Reset Ghost
   ghostTapCount = 0;
-  
   updateWallpaper(); 
 }
 
@@ -357,7 +323,21 @@ btnUploadNotes.addEventListener('click', () => {
   uploadNotes.click();
 });
 
-// --- SETTINGS ---
+// --- SETTINGS TABS ---
+function initSettingsTabs() {
+  const tabs = document.querySelectorAll('.tab-btn');
+  const sections = document.querySelectorAll('.menu-section');
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      sections[index].classList.add('active');
+    });
+  });
+}
+
+// --- SETTINGS UI ---
 function openSettings() {
   settingsOverlay.classList.add('open');
   refInput.value = referenceNumber;
@@ -375,7 +355,6 @@ function closeSettings() {
 }
 closeSettingsBtn.addEventListener('click', closeSettings);
 
-// Toggles
 notesToggle.addEventListener('change', () => { notesMode = notesToggle.checked; toggleNameInput(); });
 ghostToggle.addEventListener('change', () => { ghostMode = ghostToggle.checked; });
 
@@ -437,7 +416,6 @@ function loadSettings() {
   const savedGhost = localStorage.getItem('ghostMode'); if (savedGhost !== null) ghostMode = (savedGhost === 'true');
   const savedName = localStorage.getItem('spectatorName'); if (savedName) spectatorName = savedName;
   const savedErrors = localStorage.getItem('forcedErrors'); if (savedErrors) forcedErrors = parseInt(savedErrors, 10);
-  
   updateWallpaper();
 }
 
@@ -448,39 +426,15 @@ function updateWallpaper() {
   const savedNotesBG = localStorage.getItem('bgNotes');
   
   if (!isUnlocked) {
-    // LOCKSCREEN
     wallpaperImg.src = savedLock || "";
   } else {
-    // HOMESCREEN
-    if (notesMode && savedNotesBG) {
-      wallpaperImg.src = savedNotesBG;
-    } else if (savedHome) {
-      wallpaperImg.src = savedHome;
-    } else {
-      wallpaperImg.src = "";
-    }
+    if (notesMode && savedNotesBG) wallpaperImg.src = savedNotesBG;
+    else if (savedHome) wallpaperImg.src = savedHome;
+    else wallpaperImg.src = "";
   }
 }
 
-// Image Handling
 function saveImage(key, dataUrl) { try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large!"); } }
-
-uploadLock.addEventListener('change', (e) => {
-  const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { 
-    saveImage('bgLock', evt.target.result); 
-    updateWallpaper();
-  }; reader.readAsDataURL(file); }
-});
-uploadHome.addEventListener('change', (e) => {
-  const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { 
-    saveImage('bgHome', evt.target.result); 
-    updateWallpaper();
-  }; reader.readAsDataURL(file); }
-});
-uploadNotes.addEventListener('change', (e) => {
-  const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (evt) => { 
-    saveImage('bgNotes', evt.target.result); 
-    updateWallpaper();
-    alert("Notes background saved!");
-  }; reader.readAsDataURL(file); }
-});
+uploadLock.addEventListener('change', (e) => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=(v)=>{ saveImage('bgLock',v.target.result); updateWallpaper(); }; r.readAsDataURL(f); }});
+uploadHome.addEventListener('change', (e) => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=(v)=>{ saveImage('bgHome',v.target.result); updateWallpaper(); }; r.readAsDataURL(f); }});
+uploadNotes.addEventListener('change', (e) => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=(v)=>{ saveImage('bgNotes',v.target.result); updateWallpaper(); alert("Notes background saved!"); }; r.readAsDataURL(f); }});
