@@ -100,7 +100,7 @@ initLockKeypad();
 initDialerKeypad();
 renderDots();
 initSettingsTabs();
-fixBackgroundHeight(); 
+// REMOVED fixBackgroundHeight() to prevent scrolling glitches
 
 // --- GHOST UNLOCK LOGIC ---
 document.addEventListener('touchstart', (e) => {
@@ -363,6 +363,8 @@ function loadSettings() {
   const er = localStorage.getItem('forcedErrors'); if(er) forcedErrors = parseInt(er,10);
   updateWallpaper();
 }
+
+// --- WALLPAPER LOGIC (FIXED) ---
 function updateWallpaper() {
   const l = localStorage.getItem('bgLock');
   const h = localStorage.getItem('bgHome');
@@ -370,48 +372,68 @@ function updateWallpaper() {
 
   let nextSrc = null;
 
-  if (!isUnlocked && l) {
+  if (!isUnlocked) {
+    // We are on lock screen
     nextSrc = l;
   } 
   else if (isUnlocked && notesMode && nb) {
+    // Unlocked and in notes mode
     nextSrc = nb;
   } 
-  else if (isUnlocked && h) {
+  else if (isUnlocked) {
+    // Unlocked standard home
     nextSrc = h;
   }
 
-  // ❗ ONLY change src if we actually have an image
+  // 1. If we have an image, show it.
   if (nextSrc) {
+    wallpaperImg.style.display = 'block';
     wallpaperImg.src = nextSrc;
+  } 
+  // 2. If NO image, hide the img element (showing the black bgContainer behind it)
+  else {
+    wallpaperImg.style.display = 'none';
+    // Clear src to ensure no broken image icon
+    wallpaperImg.src = '';
   }
 }
+
 function handleFile(key, file) {
   const r = new FileReader();
 
   r.onload = (e) => {
+    const imgData = e.target.result;
+
+    // A. IMMEDIATE DISPLAY (Updates UI before saving)
+    // Check if the uploaded image matches the current state
+    const isLockState = !isUnlocked && key === 'bgLock';
+    const isHomeState = isUnlocked && !notesMode && key === 'bgHome';
+    const isNotesState = isUnlocked && notesMode && key === 'bgNotes';
+
+    if (isLockState || isHomeState || isNotesState) {
+        wallpaperImg.style.display = 'block';
+        wallpaperImg.src = imgData;
+    }
+
+    // B. TRY TO SAVE (Persist for later)
     try {
-      localStorage.setItem(key, e.target.result);
+      localStorage.setItem(key, imgData);
+      // If successful, run updateWallpaper to sync everything properly
       updateWallpaper();
     } catch (err) {
-      alert("Image too big! Use a smaller image.");
+      console.log("Image too big for storage, using temporary session.");
+      // We don't alert the user, we just let them use it for this session.
     }
   };
 
   r.readAsDataURL(file);
 
-  // ✅ Reset input so iOS allows re-uploading same image
+  // Reset inputs so you can re-upload the same file if needed
   if (uploadLock) uploadLock.value = "";
   if (uploadHome) uploadHome.value = "";
   if (uploadNotes) uploadNotes.value = "";
-  
 }
+
 uploadLock.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgLock', e.target.files[0]); });
 uploadHome.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgHome', e.target.files[0]); });
 uploadNotes.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgNotes', e.target.files[0]); });
-
-// --- IOS FULLSCREEN FIX ---
-function fixBackgroundHeight() {
-  if (bgContainer) bgContainer.style.height = `${window.innerHeight}px`;
-}
-window.addEventListener('resize', fixBackgroundHeight);
-window.addEventListener('orientationchange', fixBackgroundHeight);
