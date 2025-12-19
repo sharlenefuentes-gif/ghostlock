@@ -13,8 +13,7 @@
   <link rel="apple-touch-icon" href="icon.jpg"> 
   
   <title>Ghost Lock</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   
@@ -25,39 +24,22 @@
   <div class="app">
     
     <main class="homescreen" id="homescreen">
-      <div class="status-bar light">
-          <span class="left">9:41</span>
-          <div class="right"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
-      </div>
       <div id="magicResult" class="magic-result"></div>
       <div id="historyResult" class="history-result"></div>
       <div id="notesContent" class="notes-content"></div>
-      
-      <div class="dock">
-          <div class="icon green"><i class="fas fa-phone"></i></div>
-          <div class="icon blue"><i class="fas fa-envelope"></i></div>
-          <div class="icon orange"><i class="fas fa-globe"></i></div>
-          <div class="icon pink"><i class="fas fa-music"></i></div>
-      </div>
     </main>
 
     <main class="lockscreen" id="lockscreen">
-      <div class="status-bar">
-          <span class="left">9:41</span>
-          <div class="right"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
-      </div>
+      <div class="status-bar-spacer"></div>
+
       <div class="content-wrapper">
-        <div class="lock-pad">
-            <i class="fas fa-lock open-icon"></i>
-            <div class="time-big">9:41</div>
-            <div class="date-small">Thursday, 18 December</div>
-        </div>
         <div class="passcode-panel" id="panel">
           <div class="prompt" id="promptText">Enter Passcode</div>
           <div class="dots" id="dots"></div>
           <div class="keypad" id="keypad"></div>
         </div>
       </div>
+
       <div class="lock-footer-banner">
         <div class="footer-button" id="emergencyBtn">Emergency</div>
         <div class="footer-button" id="cancelFooterBtn">Cancel</div>
@@ -68,95 +50,85 @@
       <div class="dialer-display" id="dialerDisplay"></div>
       <div class="dialer-pad-wrapper">
         <div class="keypad" id="dialerKeypad"></div>
-        <div class="call-btn"><i class="fas fa-phone"></i></div>
+        <div class="call-btn">
+          <svg class="call-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+        </div>
+      </div>
+      <div class="dialer-tabs">
+        <div class="tab-item"><span class="tab-icon">★</span>Favorites</div>
+        <div class="tab-item"><span class="tab-icon">🕒</span>Recents</div>
+        <div class="tab-item"><span class="tab-icon">👤</span>Contacts</div>
+        <div class="tab-item selected"><span class="tab-icon">#</span>Keypad</div>
+        <div class="tab-item"><span class="tab-icon">∞</span>Voicemail</div>
       </div>
     </div>
 
     <div id="settingsOverlay" class="settings-overlay">
       <div class="settings-sheet">
-        <div class="sheet-header"><div class="sheet-title">Settings</div></div>
-
-        <div class="tab-group">
-          <button class="tab-btn active">Config</button>
-          <button class="tab-btn">Guide</button>
+        <div class="sheet-header">
+          <div class="sheet-title">Magic Settings</div>
         </div>
 
-        <div class="menu-section active">
-           <div class="list-group">
+        <div class="tab-group">
+          <button class="tab-btn active" onclick="switchTab('config')">Config</button>
+          <button class="tab-btn" onclick="switchTab('guide')">Guide</button>
+        </div>
+
+        <div class="sheet-content">
+          <div id="tab-config" class="menu-section active">
+            
+            <div class="list-group">
               <div class="list-item">
-                <span>Reference Number</span>
-                <input type="number" id="refInput" class="clean-input" placeholder="0">
+                <div class="label">Reference Code</div>
+                <input type="number" id="refInput" class="clean-input" value="4050" inputmode="numeric">
               </div>
               <div class="list-item">
-                <span>Code Length</span>
-                <input type="number" id="lenInput" class="clean-input" placeholder="6">
+                <div class="label">Passcode Length</div>
+                <input type="number" id="lenInput" class="clean-input" placeholder="4 or 6">
               </div>
+            </div>
+
+            <div class="list-group">
               <div class="list-item">
-                <span>Forced Errors</span>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <button class="stepper-btn" id="decErrors">−</button>
-                    <span id="errorCountDisplay" style="width:20px; text-align:center;">0</span>
-                    <button class="stepper-btn" id="incErrors">+</button>
+                <div class="label">Forced Errors</div>
+                <div class="value">
+                  <button id="decErrors" class="stepper-btn">−</button>
+                  <span id="errorCountDisplay">0</span>
+                  <button id="incErrors" class="stepper-btn">+</button>
                 </div>
               </div>
-           </div>
-           <div class="list-group">
+            </div>
+
+            <div class="list-group">
               <div class="list-item">
-                <span>Notes Mode</span>
-                <label class="toggle-switch"><input type="checkbox" id="notesToggle"><span class="slider"></span></label>
+                <div class="label">Ghost Unlock</div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="ghostToggle">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="list-item">
+                <div class="label">Notes Mode</div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="notesToggle">
+                  <span class="slider"></span>
+                </label>
               </div>
               <div class="list-item" id="nameInputRow" style="display:none;">
-                <span>Spectator Name</span>
+                <div class="label">Spectator Name</div>
                 <input type="text" id="spectatorName" class="clean-input" placeholder="Name">
               </div>
               <div class="list-item" id="notesUploadRow" style="display:none;">
-                <span>Notes Background</span>
-                <button id="btnUploadNotes" class="upload-btn">Upload</button>
+                <div class="label">Notes Background</div>
+                <button id="btnUploadNotes" class="upload-btn">Upload Image</button>
               </div>
-              <div class="list-item">
-                <span>Ghost Lock</span>
-                <label class="toggle-switch"><input type="checkbox" id="ghostToggle"><span class="slider"></span></label>
-              </div>
-           </div>
-        </div>
-
-        <div class="menu-section">
-          <div class="guide-scroll-area">
-            
-            <div class="guide-block">
-                <h3>1. Custom Wallpapers</h3>
-                <p><strong>Lock Screen:</strong> Double-tap the top-left corner (clock area).</p>
-                <p><strong>Home Screen:</strong> Double-tap the top-right corner (battery area).</p>
             </div>
+          </div>
 
-            <div class="guide-block">
-                <h3>2. The Main Effect</h3>
-                <p>Set a <strong>Reference Number</strong> in Config (e.g. 1000).</p>
-                <p>Ask spectator for their secret number (e.g. 1950).</p>
-                <p><strong>Calculation:</strong> Input (1950) - Reference (1000) = Result (950).</p>
-                <p>The Result (950) appears on the home screen as the "Phone Password".</p>
-            </div>
-
-            <div class="guide-block">
-                <h3>3. Zodiac Reveal</h3>
-                <p>This requires <strong>Forced Errors</strong> set to at least 1.</p>
-                <p>Ask for their birthday (e.g., Dec 18). Ask them to try unlocking the phone using 1812 (DDMM) or 1218.</p>
-                <p>The phone will "Error" and shake. When they finally unlock it, the Notes or History will reveal their Zodiac sign based on that error code.</p>
-            </div>
-
-            <div class="guide-block">
-                <h3>4. Ghost Lock</h3>
-                <p>Allows you to tap the <strong>Background</strong> to create fake dots.</p>
-                <p>Tap a <strong>Key</strong> to register a real digit.</p>
-                <p><em>Example for code "8":</em> Tap Background 5 times (fake dots), then tap key "8" (unlocks).</p>
-            </div>
-
-            <div class="guide-block">
-                <h3>5. Notes Mode</h3>
-                <p>Instead of a big number, the phone unlocks to a text Note.</p>
-                <p>This note naturally integrates the Spectator Name (set in Config), their Zodiac (from the error), and the Result Number.</p>
-            </div>
-
+          <div id="tab-guide" class="menu-section">
+            <div class="guide-row"><span><strong>Ghost Mode</strong><br>Tap ANYWHERE 5 times (fills 5 dots). Tap a KEYPAD KEY for the 6th tap to unlock.</span></div>
+            <div class="guide-row"><span><strong>Haptics</strong><br>Uses vibration on Android. Uses acoustic clicks on iOS.</span></div>
+            <div class="guide-row"><span><strong>Notes Reveal</strong><br>Enable Notes Mode. The "Intuition Log" predicts the generated number.</span></div>
           </div>
         </div>
 
@@ -171,5 +143,14 @@
   </div>
   
   <script src="script.js"></script>
+  <script>
+    function switchTab(t){
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.menu-section').forEach(s=>s.classList.remove('active'));
+      if(t==='config'){document.querySelector('.tab-btn:nth-child(1)').classList.add('active');document.getElementById('tab-config').classList.add('active');}
+      else{document.querySelector('.tab-btn:nth-child(2)').classList.add('active');document.getElementById('tab-guide').classList.add('active');}
+    }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+  </script>
 </body>
 </html>
