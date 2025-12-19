@@ -12,6 +12,11 @@ let isUnlocked = false;
 let currentErrors = 0; 
 let detectedZodiac = null;
 
+// --- MEMORY FALLBACKS (Fixes "Image too big" black screen) ---
+let memBgLock = null;
+let memBgHome = null;
+let memBgNotes = null;
+
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
 const wallpaperImg = document.getElementById('wallpaperImg');
@@ -54,7 +59,7 @@ const uploadLock = document.getElementById('uploadLock');
 const uploadHome = document.getElementById('uploadHome');
 const uploadNotes = document.getElementById('uploadNotes');
 
-// --- AUDIO HAPTICS (ROBUST FIX) ---
+// --- AUDIO HAPTICS ---
 let audioCtx = null;
 
 function ensureAudioContext() {
@@ -62,18 +67,14 @@ function ensureAudioContext() {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (AudioContext) audioCtx = new AudioContext();
   }
-  // Force resume if suspended (common iOS issue)
   if (audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume();
   }
 }
 
 function triggerHaptic() {
-  // 1. Vibration
   if (navigator.vibrate) navigator.vibrate(8); 
-  
-  // 2. Sound
-  ensureAudioContext(); // Wake up engine
+  ensureAudioContext(); 
   if (!audioCtx) return;
 
   const t = audioCtx.currentTime;
@@ -100,7 +101,6 @@ initLockKeypad();
 initDialerKeypad();
 renderDots();
 initSettingsTabs();
-// REMOVED fixBackgroundHeight() to prevent scrolling glitches
 
 // --- GHOST UNLOCK LOGIC ---
 document.addEventListener('touchstart', (e) => {
@@ -112,7 +112,6 @@ document.addEventListener('touchstart', (e) => {
   if (enteredCode.length >= maxDigits) return;
 
   if (enteredCode.length < maxDigits - 1) {
-      // If tapping background (not a key)
       if (!e.target.closest('.key')) {
           e.preventDefault();
           e.stopPropagation();
@@ -128,7 +127,6 @@ document.addEventListener('touchstart', (e) => {
 function getZodiacSign(day, month) {
   let d = day, m = month;
   if (m > 12 && d <= 12) { let temp = d; d = m; m = temp; }
-  
   if (!d || !m || m < 1 || m > 12 || d < 1 || d > 31) return null;
 
   if ((m == 1 && d >= 20) || (m == 2 && d <= 18)) return "Aquarius";
@@ -173,7 +171,7 @@ function attachKeyEvents(container, handler) {
     if (key.classList.contains('empty')) return;
     key.addEventListener('touchstart', (e) => {
       e.preventDefault(); 
-      ensureAudioContext(); // WAKE UP AUDIO ON TOUCH
+      ensureAudioContext(); 
       const digit = key.getAttribute('data-digit');
       handler(digit);
       triggerHaptic();
@@ -199,11 +197,9 @@ function handleLockTap(digit) {
 function handleDialerTap(digit) { dialerDisplay.textContent += digit; triggerHaptic(); }
 
 function attemptUnlock() {
-  // 1. Check for Forced Errors
   if (!ghostMode || (ghostMode && enteredCode.length === maxDigits)) {
     if (currentErrors < forcedErrors) {
         currentErrors++;
-        // Zodiac check
         if (enteredCode.length >= 4) {
              const d = parseInt(enteredCode.substring(0, 2), 10);
              const m = parseInt(enteredCode.substring(2, 4), 10);
@@ -215,7 +211,6 @@ function attemptUnlock() {
     }
   }
 
-  // 2. Unlock Success
   const inputNum = parseInt(enteredCode, 10) || 0;
   const result = inputNum - referenceNumber;
 
@@ -231,10 +226,10 @@ function attemptUnlock() {
     notesContent.innerHTML = html;
   } else {
     magicResult.style.display = 'block';
-    historyResult.style.display = 'block'; // Block, not flex, to prevent stacking
+    historyResult.style.display = 'block'; 
     notesContent.classList.remove('active');
     magicResult.textContent = result;
-    if (detectedZodiac) historyResult.textContent = detectedZodiac; // Direct text, no html stacking
+    if (detectedZodiac) historyResult.textContent = detectedZodiac; 
   }
   
   unlock();
@@ -273,7 +268,7 @@ emergencyBtn.addEventListener('click', () => { dialerScreen.classList.add('activ
 dialerScreen.querySelector('.call-btn').addEventListener('click', () => { if(navigator.vibrate) navigator.vibrate(50); });
 cancelFooterBtn.addEventListener('click', () => { enteredCode = ""; renderDots(); });
 
-// New Upload Button Logic
+// Upload Buttons
 btnUploadLock.addEventListener('click', () => uploadLock.click());
 btnUploadHome.addEventListener('click', () => uploadHome.click());
 btnUploadNotes.addEventListener('click', () => uploadNotes.click());
@@ -318,7 +313,6 @@ decErrors.addEventListener('click', () => { if(forcedErrors>0) forcedErrors--; e
 incErrors.addEventListener('click', () => { forcedErrors++; errorCountDisplay.textContent=forcedErrors; });
 
 // --- GESTURES ---
-// 1. Settings (2 Finger Swipe Down)
 let twoFingerStart = null;
 window.addEventListener('touchstart', (e) => { 
   if (e.touches.length === 2) twoFingerStart = e.touches[0].clientY; 
@@ -333,7 +327,6 @@ window.addEventListener('touchmove', (e) => {
 
 window.addEventListener('touchend', () => twoFingerStart = null);
 
-// 2. Relock (Tap bottom 3 times)
 let botTapCount = 0, botTapTimer = null;
 document.addEventListener('click', (e) => {
   if (!isUnlocked) return;
@@ -364,36 +357,33 @@ function loadSettings() {
   updateWallpaper();
 }
 
-// --- WALLPAPER LOGIC (FIXED) ---
+// --- ROBUST WALLPAPER LOGIC ---
 function updateWallpaper() {
-  const l = localStorage.getItem('bgLock');
-  const h = localStorage.getItem('bgHome');
-  const nb = localStorage.getItem('bgNotes');
+  // Try LocalStorage first, then RAM (Memory Fallback)
+  const l = localStorage.getItem('bgLock') || memBgLock;
+  const h = localStorage.getItem('bgHome') || memBgHome;
+  const nb = localStorage.getItem('bgNotes') || memBgNotes;
 
   let nextSrc = null;
 
   if (!isUnlocked) {
-    // We are on lock screen
     nextSrc = l;
   } 
   else if (isUnlocked && notesMode && nb) {
-    // Unlocked and in notes mode
     nextSrc = nb;
   } 
   else if (isUnlocked) {
-    // Unlocked standard home
     nextSrc = h;
   }
 
-  // 1. If we have an image, show it.
+  // 1. If we have an image source, show it
   if (nextSrc) {
     wallpaperImg.style.display = 'block';
     wallpaperImg.src = nextSrc;
   } 
-  // 2. If NO image, hide the img element (showing the black bgContainer behind it)
+  // 2. If NO image, hide the img element so black bgContainer shows
   else {
     wallpaperImg.style.display = 'none';
-    // Clear src to ensure no broken image icon
     wallpaperImg.src = '';
   }
 }
@@ -404,31 +394,24 @@ function handleFile(key, file) {
   r.onload = (e) => {
     const imgData = e.target.result;
 
-    // A. IMMEDIATE DISPLAY (Updates UI before saving)
-    // Check if the uploaded image matches the current state
-    const isLockState = !isUnlocked && key === 'bgLock';
-    const isHomeState = isUnlocked && !notesMode && key === 'bgHome';
-    const isNotesState = isUnlocked && notesMode && key === 'bgNotes';
-
-    if (isLockState || isHomeState || isNotesState) {
-        wallpaperImg.style.display = 'block';
-        wallpaperImg.src = imgData;
-    }
-
-    // B. TRY TO SAVE (Persist for later)
+    // 1. Try to save to permanent storage (LocalStorage)
     try {
       localStorage.setItem(key, imgData);
-      // If successful, run updateWallpaper to sync everything properly
-      updateWallpaper();
     } catch (err) {
-      console.log("Image too big for storage, using temporary session.");
-      // We don't alert the user, we just let them use it for this session.
+      console.log("Image too big for storage. Using RAM fallback.");
+      // 2. If too big, save to RAM variables so it still works for this session
+      if(key === 'bgLock') memBgLock = imgData;
+      if(key === 'bgHome') memBgHome = imgData;
+      if(key === 'bgNotes') memBgNotes = imgData;
     }
+
+    // 3. Update the screen immediately
+    updateWallpaper();
   };
 
   r.readAsDataURL(file);
 
-  // Reset inputs so you can re-upload the same file if needed
+  // Reset inputs to allow re-upload
   if (uploadLock) uploadLock.value = "";
   if (uploadHome) uploadHome.value = "";
   if (uploadNotes) uploadNotes.value = "";
