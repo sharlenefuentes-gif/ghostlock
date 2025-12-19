@@ -52,7 +52,7 @@ html, body {
   object-position: center;
   display: block;
   /* Prevent flickering on some iOS versions */
-  will-change: transform;
+  background: transparent;
 }
 
 .app {
