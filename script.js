@@ -367,16 +367,43 @@ function updateWallpaper() {
   const l = localStorage.getItem('bgLock');
   const h = localStorage.getItem('bgHome');
   const nb = localStorage.getItem('bgNotes');
-  if (!isUnlocked) wallpaperImg.src = l || "";
-  else {
-    if (notesMode && nb) wallpaperImg.src = nb;
-    else wallpaperImg.src = h || "";
+
+  let nextSrc = null;
+
+  if (!isUnlocked && l) {
+    nextSrc = l;
+  } 
+  else if (isUnlocked && notesMode && nb) {
+    nextSrc = nb;
+  } 
+  else if (isUnlocked && h) {
+    nextSrc = h;
+  }
+
+  // ❗ ONLY change src if we actually have an image
+  if (nextSrc) {
+    wallpaperImg.src = nextSrc;
   }
 }
 function handleFile(key, file) {
-    const r = new FileReader();
-    r.onload = (e) => { try { localStorage.setItem(key, e.target.result); updateWallpaper(); } catch(err){ alert("Image too big! Use a smaller image."); } };
-    r.readAsDataURL(file);
+  const r = new FileReader();
+
+  r.onload = (e) => {
+    try {
+      localStorage.setItem(key, e.target.result);
+      updateWallpaper();
+    } catch (err) {
+      alert("Image too big! Use a smaller image.");
+    }
+  };
+
+  r.readAsDataURL(file);
+
+  // ✅ Reset input so iOS allows re-uploading same image
+  if (uploadLock) uploadLock.value = "";
+  if (uploadHome) uploadHome.value = "";
+  if (uploadNotes) uploadNotes.value = "";
+  
 }
 uploadLock.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgLock', e.target.files[0]); });
 uploadHome.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgHome', e.target.files[0]); });
