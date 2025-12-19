@@ -55,20 +55,20 @@ main {
 
 .homescreen { z-index: 1; display: block; }
 
-/* REVEALS */
+/* REVEALS (Updated: Smaller & Dimmer) */
 .magic-result {
-  position: absolute; bottom: 15px; right: 20px;
-  font-size: 16px; font-weight: 500;
-  color: rgba(255, 255, 255, 0.35); 
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8); pointer-events: none;
+  position: absolute; bottom: 18px; right: 25px;
+  font-size: 13px; font-weight: 500;
+  color: rgba(255, 255, 255, 0.25); 
+  text-shadow: 0 1px 1px rgba(0,0,0,0.5); pointer-events: none;
 }
 .history-result {
-  position: absolute; bottom: 15px; left: 20px;
+  position: absolute; bottom: 18px; left: 25px;
   display: flex; flex-direction: column-reverse; 
   align-items: flex-start; gap: 2px;
-  font-size: 16px; font-weight: 600;
-  color: rgba(255, 255, 255, 0.45); 
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8); pointer-events: none;
+  font-size: 13px; font-weight: 500;
+  color: rgba(255, 255, 255, 0.25); 
+  text-shadow: 0 1px 1px rgba(0,0,0,0.5); pointer-events: none;
   font-variant-numeric: tabular-nums; text-transform: capitalize;
 }
 
@@ -96,8 +96,7 @@ main {
   display: block;
   margin-bottom: 12px;
   letter-spacing: -0.3px;
-  text-transform: uppercase; /* ALL CAPS */
-  color: #F8D748; /* Subtle yellow tint for 'Notes' feel, or keep white */
+  text-transform: uppercase;
   color: #fff;
 }
 
@@ -126,6 +125,8 @@ main {
 .dot.filled { background: #fff; }
 
 .keypad { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 32px; row-gap: 18px; }
+
+/* KEYS (Updated: Fixes sticky hover state) */
 .key {
   width: 78px; height: 78px; border-radius: 50%;
   background-color: var(--glass-surface);
@@ -135,7 +136,17 @@ main {
   transform: translateZ(0); display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; position: relative; transition: background-color 0.15s, transform 0.1s;
 }
-.key:active, .key.active { background-color: rgba(255, 255, 255, 0.4) !important; transform: scale(0.92) translateZ(0);
+
+/* Force active state via JS only, disable default sticky hover */
+.key.active { 
+  background-color: rgba(255, 255, 255, 0.4) !important; 
+  transform: scale(0.92) translateZ(0); 
+}
+.key:hover, .key:active {
+  background-color: var(--glass-surface);
+  transform: none;
+}
+
 .key-digit { font-size: 34px; font-weight: 400; line-height: 1; margin-bottom: 2px; pointer-events: none; }
 .key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; pointer-events: none; }
 .key.empty { visibility: hidden; pointer-events: none; }
