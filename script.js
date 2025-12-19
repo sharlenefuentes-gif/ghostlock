@@ -11,7 +11,6 @@ let enteredCode = "";
 let isUnlocked = false;
 let currentErrors = 0; 
 let detectedZodiac = null;
-let ghostTapCount = 0; 
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
@@ -45,7 +44,7 @@ const errorCountDisplay = document.getElementById('errorCountDisplay');
 const decErrors = document.getElementById('decErrors');
 const incErrors = document.getElementById('incErrors');
 
-// Upload Buttons (New)
+// Upload Buttons
 const btnUploadNotes = document.getElementById('btnUploadNotes');
 const btnUploadLock = document.getElementById('btnUploadLock');
 const btnUploadHome = document.getElementById('btnUploadHome');
@@ -55,29 +54,42 @@ const uploadLock = document.getElementById('uploadLock');
 const uploadHome = document.getElementById('uploadHome');
 const uploadNotes = document.getElementById('uploadNotes');
 
-// --- AUDIO HAPTICS ---
+// --- AUDIO HAPTICS (ROBUST FIX) ---
 let audioCtx = null;
-function initAudio() {
+
+function ensureAudioContext() {
   if (!audioCtx) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (AudioContext) audioCtx = new AudioContext();
   }
-  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  // Force resume if suspended (common iOS issue)
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
 }
 
 function triggerHaptic() {
-  if (navigator.vibrate) navigator.vibrate(8); // Tiny tick for keys
+  // 1. Vibration
+  if (navigator.vibrate) navigator.vibrate(8); 
+  
+  // 2. Sound
+  ensureAudioContext(); // Wake up engine
   if (!audioCtx) return;
+
   const t = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
+  
   osc.connect(gain);
   gain.connect(audioCtx.destination);
+  
   osc.type = 'sine';
   osc.frequency.setValueAtTime(800, t);
   osc.frequency.exponentialRampToValueAtTime(100, t + 0.015);
+  
   gain.gain.setValueAtTime(0.05, t); 
   gain.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
+  
   osc.start(t);
   osc.stop(t + 0.015);
 }
@@ -88,17 +100,13 @@ initLockKeypad();
 initDialerKeypad();
 renderDots();
 initSettingsTabs();
-fixBackgroundHeight(); // Run iOS fix immediately
-document.addEventListener('touchstart', initAudio, {once:true});
-document.addEventListener('click', initAudio, {once:true});
+fixBackgroundHeight(); 
 
 // --- GHOST UNLOCK LOGIC ---
 document.addEventListener('touchstart', (e) => {
   if (isUnlocked || !ghostMode) return;
   if (settingsOverlay.classList.contains('open')) return;
   if (dialerScreen.classList.contains('active')) return;
-  
-  // IGNORE GESTURES (More than 1 finger)
   if (e.touches.length > 1) return;
 
   if (enteredCode.length >= maxDigits) return;
@@ -165,6 +173,7 @@ function attachKeyEvents(container, handler) {
     if (key.classList.contains('empty')) return;
     key.addEventListener('touchstart', (e) => {
       e.preventDefault(); 
+      ensureAudioContext(); // WAKE UP AUDIO ON TOUCH
       const digit = key.getAttribute('data-digit');
       handler(digit);
       triggerHaptic();
@@ -222,10 +231,10 @@ function attemptUnlock() {
     notesContent.innerHTML = html;
   } else {
     magicResult.style.display = 'block';
-    historyResult.style.display = 'flex';
+    historyResult.style.display = 'block'; // Block, not flex, to prevent stacking
     notesContent.classList.remove('active');
     magicResult.textContent = result;
-    if (detectedZodiac) historyResult.innerHTML = `<span>${detectedZodiac}</span>`;
+    if (detectedZodiac) historyResult.textContent = detectedZodiac; // Direct text, no html stacking
   }
   
   unlock();
@@ -245,7 +254,7 @@ function triggerError() {
 function unlock() {
   isUnlocked = true;
   lockscreen.classList.add('unlocked');
-  enteredCode = ""; renderDots(); currentErrors = 0; ghostTapCount = 0;
+  enteredCode = ""; renderDots(); currentErrors = 0; 
   updateWallpaper();
 }
 function reLock() {
@@ -253,7 +262,7 @@ function reLock() {
   lockscreen.classList.remove('unlocked');
   dialerScreen.classList.remove('active');
   magicResult.textContent = "";
-  historyResult.innerHTML = "";
+  historyResult.textContent = "";
   detectedZodiac = null;
   notesContent.classList.remove('active');
   updateWallpaper();
