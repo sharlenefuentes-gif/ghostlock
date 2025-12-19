@@ -13,7 +13,12 @@
   --text-secondary: rgba(235, 235, 245, 0.6);
 }
 
-* { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+* { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+
+input[type="file"] {
+  user-select: auto;
+  -webkit-user-select: auto;
+}
 
 html, body {
   margin: 0;
@@ -203,7 +208,7 @@ main {
 .stepper-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #fff; font-size: 18px; line-height: 1; }
 .close-action { width: 100%; background: #303032; color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 600; margin-top: 10px; }
 .toggle-switch { position: relative; width: 50px; height: 30px; }
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-switch input[type="checkbox"] { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a3a3c; transition: .4s; border-radius: 34px; }
 .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
 input:checked + .slider { background-color: var(--accent-green); }
