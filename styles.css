@@ -177,4 +177,39 @@ main {
 
 .settings-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: flex-end; justify-content: center; }
 .settings-overlay.open { opacity: 1; pointer-events: auto; }
-.settings-sheet { width: 95%; max-width: 400px; background: #1C1C1E; border-radius: 20px 20px 0 0; padding: 20px; padding-bottom: 40px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8
+.settings-sheet { width: 95%; max-width: 400px; background: #1C1C1E; border-radius: 20px 20px 0 0; padding: 20px; padding-bottom: 40px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.5); border-top: 1px solid rgba(255,255,255,0.1); color: #fff; }
+.settings-overlay.open .settings-sheet { transform: translateY(0); }
+.sheet-header { margin-bottom: 15px; }
+.sheet-title { font-size: 20px; font-weight: 700; }
+.tab-group { display: flex; background: rgba(118, 118, 128, 0.24); padding: 2px; border-radius: 9px; margin-bottom: 20px; }
+.tab-btn { flex: 1; background: transparent; border: none; padding: 6px; color: #fff; font-size: 13px; font-weight: 500; border-radius: 7px; }
+.tab-btn.active { background: #636366; }
+.menu-section { display: none; }
+.menu-section.active { display: block; }
+.list-group { background: rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; margin-bottom: 15px; }
+.list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.list-item:last-child { border-bottom: none; }
+.guide-text { font-size: 13px; color: var(--text-secondary); padding: 8px 16px; line-height: 1.4; }
+.guide-row { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; line-height: 1.4; }
+.guide-row strong { color: #fff; display: block; margin-bottom: 2px; }
+.guide-row span { color: var(--text-secondary); }
+.clean-input { background: transparent; border: none; color: var(--accent-blue); font-size: 16px; font-weight: 600; text-align: right; width: 120px; }
+.clean-input:focus { outline: none; border-bottom: 1px solid var(--accent-blue); }
+.stepper-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #fff; font-size: 18px; line-height: 1; }
+.close-action { width: 100%; background: #303032; color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 600; margin-top: 10px; }
+.toggle-switch { position: relative; width: 50px; height: 30px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a3a3c; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--accent-green); }
+input:checked + .slider:before { transform: translateX(20px); }
+.credits-sub { text-align: center; font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 15px; }
+.upload-btn { background: var(--accent-blue); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; }
+
+#tab-guide {
+  max-height: 50vh;             /* Limits height to 50% of screen */
+  overflow-y: auto;             /* Adds scrollbar when needed */
+  -webkit-overflow-scrolling: touch; /* Makes scrolling smooth on iPhone */
+  padding-bottom: 20px;         /* Extra space at the bottom */
+  overscroll-behavior: contain; /* Prevents scrolling the background */
+}
