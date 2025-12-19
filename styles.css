@@ -17,28 +17,27 @@
 
 html, body {
   margin: 0; padding: 0;
-  background: var(--bg-color);
-  color: var(--text-color);
-  font-family: var(--font-stack);
+  width: 100%; height: 100%;
+  position: fixed; 
   overflow: hidden;
-  position: fixed; /* This locks the window */
-  width: 100%;
-  height: 100%;
-  z-index: 0;
+  background: #000;
+  /* These 3 lines stop the iPhone from zooming or bouncing */
+  touch-action: none;
+  -webkit-text-size-adjust: none;
+  overscroll-behavior: none;
 }
 
 #bgContainer {
   position: fixed;
-  /* Pull it up and left to center the oversize */
-  top: -10vh; 
-  left: -10vw; 
-  /* Make it larger than the screen */
-  width: 120vw;
-  height: 120vh; 
+  top: 0; left: 0;
+  width: 100vw;
+  /* 110vh makes it slightly taller than the screen to ensure NO bottom crop */
+  height: 110vh; 
   z-index: -1; 
   pointer-events: none;
   background: #000;
-  transform: translateZ(0);
+  /* This ensures the image covers the extra space without stretching weirdly */
+  object-fit: cover; 
 }
 
 #wallpaperImg {
