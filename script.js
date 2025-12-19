@@ -61,7 +61,7 @@ function initAudio() {
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }
 function triggerHaptic() {
-  if (navigator.vibrate) navigator.vibrate(8); 
+  if (navigator.vibrate) navigator.vibrate(8); // Tiny tick for keys
   if (!audioCtx) return;
   const t = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
@@ -86,13 +86,13 @@ initSettingsTabs();
 document.addEventListener('touchstart', initAudio, {once:true});
 document.addEventListener('click', initAudio, {once:true});
 
-// --- GHOST UNLOCK LOGIC (FIXED) ---
+// --- GHOST UNLOCK LOGIC ---
 document.addEventListener('touchstart', (e) => {
   if (isUnlocked || !ghostMode) return;
   if (settingsOverlay.classList.contains('open')) return;
   if (dialerScreen.classList.contains('active')) return;
   
-  // FIX: If 2 or more fingers, it's a gesture (Swipe). Ignore Ghost Logic.
+  // IGNORE GESTURES (More than 1 finger)
   if (e.touches.length > 1) return;
 
   if (enteredCode.length >= maxDigits) return;
@@ -112,9 +112,7 @@ document.addEventListener('touchstart', (e) => {
 
 // --- ZODIAC CALCULATOR ---
 function getZodiacSign(day, month) {
-  // Try DDMM format first
   let d = day, m = month;
-  // Basic sanity check, swap if month > 12 (assuming US format input error)
   if (m > 12 && d <= 12) { let temp = d; d = m; m = temp; }
   
   if (!d || !m || m < 1 || m > 12 || d < 1 || d > 31) return null;
@@ -186,14 +184,11 @@ function handleLockTap(digit) {
 function handleDialerTap(digit) { dialerDisplay.textContent += digit; triggerHaptic(); }
 
 function attemptUnlock() {
-  // 1. Check for Forced Errors (Unless Ghost Mode is active and bypassing)
+  // 1. Check for Forced Errors
   if (!ghostMode || (ghostMode && enteredCode.length === maxDigits)) {
-    // Note: In strict ghost mode, we might want to skip error check, 
-    // but usually, we want the error check if the "Key" was pressed.
-    // Simplifying: If current errors < forced, trigger error.
     if (currentErrors < forcedErrors) {
         currentErrors++;
-        // Try to detect Zodiac from this "wrong" code
+        // Zodiac check
         if (enteredCode.length >= 4) {
              const d = parseInt(enteredCode.substring(0, 2), 10);
              const m = parseInt(enteredCode.substring(2, 4), 10);
@@ -230,11 +225,24 @@ function attemptUnlock() {
   unlock();
 }
 
+// --- ERROR VIBRATION FIX ---
 function triggerError() {
   panel.classList.add('shake');
-  if(navigator.vibrate) navigator.vibrate(200);
-  setTimeout(() => { panel.classList.remove('shake'); enteredCode = ""; renderDots(); }, 500);
+  
+  // iOS Style "Error" Vibration:
+  // 3 short pulses (50ms) separated by 30ms gaps.
+  // This feels like a "stutter" or "shake" in the hand.
+  if(navigator.vibrate) {
+      navigator.vibrate([50, 30, 50, 30, 50]);
+  }
+
+  setTimeout(() => { 
+      panel.classList.remove('shake'); 
+      enteredCode = ""; 
+      renderDots(); 
+  }, 500);
 }
+
 function unlock() {
   isUnlocked = true;
   lockscreen.classList.add('unlocked');
@@ -298,7 +306,7 @@ decErrors.addEventListener('click', () => { if(forcedErrors>0) forcedErrors--; e
 incErrors.addEventListener('click', () => { forcedErrors++; errorCountDisplay.textContent=forcedErrors; });
 
 // --- GESTURES ---
-// 1. Uploads (Double Tap Top Corners)
+// 1. Uploads
 let topTapCount = 0, topTapTimer = null;
 document.addEventListener('touchstart', (e) => {
   if (e.touches[0].clientY > 100) return;
@@ -328,7 +336,7 @@ window.addEventListener('touchmove', (e) => {
 
 window.addEventListener('touchend', () => twoFingerStart = null);
 
-// 3. Relock (3 Taps Bottom)
+// 3. Relock
 let botTapCount = 0, botTapTimer = null;
 document.addEventListener('click', (e) => {
   if (!isUnlocked) return;
@@ -340,7 +348,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// --- SAVE/LOAD/WALLPAPER ---
+// --- SAVE/LOAD ---
 function saveSettings() {
   localStorage.setItem('magicRefNum', referenceNumber);
   localStorage.setItem('maxDigits', maxDigits); 
