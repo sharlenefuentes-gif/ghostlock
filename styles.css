@@ -29,9 +29,12 @@ html, body {
 
 #bgContainer {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 120vh; /* Extra tall to ensure no bottom crop ever */
+  /* Pull it up and left to center the oversize */
+  top: -10vh; 
+  left: -10vw; 
+  /* Make it larger than the screen */
+  width: 120vw;
+  height: 120vh; 
   z-index: -1; 
   pointer-events: none;
   background: #000;
@@ -41,13 +44,9 @@ html, body {
 #wallpaperImg {
   width: 100%; 
   height: 100%;
-  /* 'cover' crops the image to fill screen without distortion. 
-     'center' keeps the middle of the photo visible. */
   object-fit: cover; 
   object-position: center;
   display: block;
-  /* Prevent flickering on some iOS versions */
-  will-change: transform;
 }
 
 .app { 
