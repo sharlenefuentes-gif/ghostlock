@@ -205,3 +205,12 @@ input:checked + .slider { background-color: var(--accent-green); }
 input:checked + .slider:before { transform: translateX(20px); }
 .credits-sub { text-align: center; font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 15px; }
 .upload-btn { background: var(--accent-blue); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; }
+
+}
+#tab-guide {
+  max-height: 50vh;             /* Limits height to 50% of screen */
+  overflow-y: auto;             /* Adds scrollbar when needed */
+  -webkit-overflow-scrolling: touch; /* Makes scrolling smooth on iPhone */
+  padding-bottom: 20px;         /* Extra space at the bottom */
+  overscroll-behavior: contain; /* Prevents scrolling the background */
+}
