@@ -30,18 +30,28 @@ html, body {
 #bgContainer {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  height: 100dvh; 
+  /* Use 100lvh (Large Viewport) to ensure it covers the screen even when address bars hide/show */
+  height: 100lvh; 
   width: 100vw;
   z-index: -1; 
   pointer-events: none;
   overflow: hidden;
   background: #000;
+  /* Hardware acceleration for smoother rendering */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 #wallpaperImg {
-  width: 100%; height: 100%;
-  object-fit: fill; 
+  width: 100%; 
+  height: 100%;
+  /* 'cover' crops the image to fill screen without distortion. 
+     'center' keeps the middle of the photo visible. */
+  object-fit: cover; 
+  object-position: center;
   display: block;
+  /* Prevent flickering on some iOS versions */
+  will-change: transform;
 }
 
 .app { width: 100%; height: 100%; position: relative; overflow: hidden; }
