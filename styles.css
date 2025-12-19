@@ -18,7 +18,8 @@
 html, body {
   position: fixed; 
   top: 0; left: 0; right: 0; bottom: 0;
-  width: 100vw; height: 100dvh;
+  width: 100vw; 
+  height: 100dvh; /* Changed from 100dvh to ensure it fits perfectly */
   margin: 0; padding: 0;
   background: var(--bg-color);
   color: var(--text-color);
@@ -28,18 +29,35 @@ html, body {
 }
 
 #bgContainer {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  /* Use 100lvh (Large Viewport) to ensure it covers the screen even when address bars hide/show */
-  height: 100lvh; 
-  width: 100vw;
-  z-index: -1; 
+  height: 100dvh; /* Force background to match dynamic height */
+}
+
+.history-result {
+  position: absolute; bottom: 25px; left: 25px;
+  /* Removed flex-direction column-reverse to prevent stacking */
+  font-size: 16px; font-weight: 600;
+  color: rgba(255, 255, 255, 0.4); 
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
   pointer-events: none;
-  overflow: hidden;
-  background: #000;
-  /* Hardware acceleration for smoother rendering */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+  text-transform: capitalize;
+}
+
+.settings-sheet {
+  /* ... existing styles ... */
+  /* Add safe area padding so buttons aren't covered by the iOS home bar */
+  padding-bottom: calc(20px + env(safe-area-inset-bottom)); 
+  max-height: 90dvh; /* Prevent sheet from going too high */
+}
+
+.credits-sub {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.2);
+  margin-top: 15px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 #wallpaperImg {
