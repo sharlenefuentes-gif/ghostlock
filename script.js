@@ -10,13 +10,13 @@ let spectatorName = "Someone";
 let enteredCode = "";
 let isUnlocked = false;
 let currentErrors = 0; 
-let historyLog = [];
 let detectedZodiac = null;
 let ghostTapCount = 0; 
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
 const wallpaperImg = document.getElementById('wallpaperImg');
+const bgContainer = document.getElementById('bgContainer');
 const panel = document.getElementById('panel'); 
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
@@ -44,14 +44,18 @@ const spectatorNameInput = document.getElementById('spectatorName');
 const errorCountDisplay = document.getElementById('errorCountDisplay');
 const decErrors = document.getElementById('decErrors');
 const incErrors = document.getElementById('incErrors');
-const btnUploadNotes = document.getElementById('btnUploadNotes');
 
-// Uploads
+// Upload Buttons (New)
+const btnUploadNotes = document.getElementById('btnUploadNotes');
+const btnUploadLock = document.getElementById('btnUploadLock');
+const btnUploadHome = document.getElementById('btnUploadHome');
+
+// Hidden Inputs
 const uploadLock = document.getElementById('uploadLock');
 const uploadHome = document.getElementById('uploadHome');
 const uploadNotes = document.getElementById('uploadNotes');
 
-// --- AUDIO HAPTICS (HIDDEN FROM GUIDE) ---
+// --- AUDIO HAPTICS ---
 let audioCtx = null;
 function initAudio() {
   if (!audioCtx) {
@@ -60,6 +64,7 @@ function initAudio() {
   }
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }
+
 function triggerHaptic() {
   if (navigator.vibrate) navigator.vibrate(8); // Tiny tick for keys
   if (!audioCtx) return;
@@ -83,6 +88,7 @@ initLockKeypad();
 initDialerKeypad();
 renderDots();
 initSettingsTabs();
+fixBackgroundHeight(); // Run iOS fix immediately
 document.addEventListener('touchstart', initAudio, {once:true});
 document.addEventListener('click', initAudio, {once:true});
 
@@ -225,17 +231,10 @@ function attemptUnlock() {
   unlock();
 }
 
-// --- ERROR VIBRATION FIX ---
+// --- ERROR VIBRATION ---
 function triggerError() {
   panel.classList.add('shake');
-  
-  // iOS Style "Error" Vibration:
-  // 3 short pulses (50ms) separated by 30ms gaps.
-  // This feels like a "stutter" or "shake" in the hand.
-  if(navigator.vibrate) {
-      navigator.vibrate([50, 30, 50, 30, 50]);
-  }
-
+  if(navigator.vibrate) navigator.vibrate([50, 30, 50, 30, 50]);
   setTimeout(() => { 
       panel.classList.remove('shake'); 
       enteredCode = ""; 
@@ -264,6 +263,10 @@ function reLock() {
 emergencyBtn.addEventListener('click', () => { dialerScreen.classList.add('active'); dialerDisplay.textContent = enteredCode; });
 dialerScreen.querySelector('.call-btn').addEventListener('click', () => { if(navigator.vibrate) navigator.vibrate(50); });
 cancelFooterBtn.addEventListener('click', () => { enteredCode = ""; renderDots(); });
+
+// New Upload Button Logic
+btnUploadLock.addEventListener('click', () => uploadLock.click());
+btnUploadHome.addEventListener('click', () => uploadHome.click());
 btnUploadNotes.addEventListener('click', () => uploadNotes.click());
 
 // --- SETTINGS ---
@@ -306,22 +309,7 @@ decErrors.addEventListener('click', () => { if(forcedErrors>0) forcedErrors--; e
 incErrors.addEventListener('click', () => { forcedErrors++; errorCountDisplay.textContent=forcedErrors; });
 
 // --- GESTURES ---
-// 1. Uploads
-let topTapCount = 0, topTapTimer = null;
-document.addEventListener('touchstart', (e) => {
-  if (e.touches[0].clientY > 100) return;
-  topTapCount++;
-  if (topTapTimer) clearTimeout(topTapTimer);
-  topTapTimer = setTimeout(() => topTapCount = 0, 300);
-  if (topTapCount === 2) {
-    const w = window.innerWidth;
-    const x = e.touches[0].clientX;
-    if (x < w * 0.3) uploadLock.click();
-    else if (x > w * 0.7) uploadHome.click();
-  }
-});
-
-// 2. Settings (2 Finger Swipe Down)
+// 1. Settings (2 Finger Swipe Down)
 let twoFingerStart = null;
 window.addEventListener('touchstart', (e) => { 
   if (e.touches.length === 2) twoFingerStart = e.touches[0].clientY; 
@@ -336,7 +324,7 @@ window.addEventListener('touchmove', (e) => {
 
 window.addEventListener('touchend', () => twoFingerStart = null);
 
-// 3. Relock
+// 2. Relock (Tap bottom 3 times)
 let botTapCount = 0, botTapTimer = null;
 document.addEventListener('click', (e) => {
   if (!isUnlocked) return;
@@ -378,9 +366,16 @@ function updateWallpaper() {
 }
 function handleFile(key, file) {
     const r = new FileReader();
-    r.onload = (e) => { try { localStorage.setItem(key, e.target.result); updateWallpaper(); } catch(err){ alert("Image too big!"); } };
+    r.onload = (e) => { try { localStorage.setItem(key, e.target.result); updateWallpaper(); } catch(err){ alert("Image too big! Use a smaller image."); } };
     r.readAsDataURL(file);
 }
 uploadLock.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgLock', e.target.files[0]); });
 uploadHome.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgHome', e.target.files[0]); });
 uploadNotes.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgNotes', e.target.files[0]); });
+
+// --- IOS FULLSCREEN FIX ---
+function fixBackgroundHeight() {
+  if (bgContainer) bgContainer.style.height = `${window.innerHeight}px`;
+}
+window.addEventListener('resize', fixBackgroundHeight);
+window.addEventListener('orientationchange', fixBackgroundHeight);
