@@ -18,8 +18,7 @@
 html, body {
   position: fixed; 
   top: 0; left: 0; right: 0; bottom: 0;
-  width: 100vw; 
-  height: 100dvh; /* iOS Fullscreen fix */
+  width: 100vw; height: 100dvh;
   margin: 0; padding: 0;
   background: var(--bg-color);
   color: var(--text-color);
@@ -29,15 +28,29 @@ html, body {
 }
 
 #bgContainer {
-  height: 100dvh;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  /* Use 100lvh (Large Viewport) to ensure it covers the screen even when address bars hide/show */
+  height: 100lvh; 
+  width: 100vw;
+  z-index: -1; 
+  pointer-events: none;
+  overflow: hidden;
+  background: #000;
+  /* Hardware acceleration for smoother rendering */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 #wallpaperImg {
   width: 100%; 
   height: 100%;
+  /* 'cover' crops the image to fill screen without distortion. 
+     'center' keeps the middle of the photo visible. */
   object-fit: cover; 
   object-position: center;
   display: block;
+  /* Prevent flickering on some iOS versions */
   will-change: transform;
 }
 
@@ -52,34 +65,35 @@ main {
 
 .homescreen { z-index: 1; display: block; }
 
-/* --- REVEALS --- */
+/* REVEALS (Updated: Smaller & Dimmer) */
 .magic-result {
   position: absolute; bottom: 18px; right: 25px;
   font-size: 13px; font-weight: 500;
   color: rgba(255, 255, 255, 0.25); 
   text-shadow: 0 1px 1px rgba(0,0,0,0.5); pointer-events: none;
 }
-
 .history-result {
   position: absolute; bottom: 18px; left: 25px;
-  /* Simple block display prevents stacking issues */
-  display: block; 
+  display: flex; flex-direction: column-reverse; 
+  align-items: flex-start; gap: 2px;
   font-size: 13px; font-weight: 500;
   color: rgba(255, 255, 255, 0.25); 
   text-shadow: 0 1px 1px rgba(0,0,0,0.5); pointer-events: none;
   font-variant-numeric: tabular-nums; text-transform: capitalize;
 }
 
-/* --- NOTES STYLING --- */
+/* NOTES STYLING */
 .notes-content {
   position: absolute;
   top: 130px; 
   left: 25px; right: 25px;
+  
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 19px; 
   font-weight: 400;
   line-height: 1.4;
   color: rgba(255,255,255,0.95); 
+  
   white-space: pre-wrap; 
   display: none; 
   text-shadow: 0 1px 1px rgba(0,0,0,0.3);
@@ -96,7 +110,7 @@ main {
   color: #fff;
 }
 
-/* --- LOCKSCREEN --- */
+/* LOCKSCREEN */
 .lockscreen { z-index: 2; }
 .lockscreen.unlocked { transform: translateY(-100%); pointer-events: none; }
 
@@ -122,7 +136,7 @@ main {
 
 .keypad { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 32px; row-gap: 18px; }
 
-/* KEYS */
+/* KEYS (Updated: Fixes sticky hover state) */
 .key {
   width: 78px; height: 78px; border-radius: 50%;
   background-color: var(--glass-surface);
@@ -130,21 +144,23 @@ main {
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
   box-shadow: inset 0 1px 0 0 var(--glass-border), inset 0 -1px 0 0 rgba(255,255,255,0.05), 0 4px 10px rgba(0,0,0,0.15);
   transform: translateZ(0); display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: pointer; position: relative; transition: background-color 0.1s, transform 0.1s;
+  cursor: pointer; position: relative; transition: background-color 0.15s, transform 0.1s;
 }
 
-/* Instant Tap Feedback */
+/* Force active state via JS only, disable default sticky hover */
 .key.active { 
   background-color: rgba(255, 255, 255, 0.4) !important; 
   transform: scale(0.92) translateZ(0); 
 }
-.key:hover { background-color: var(--glass-surface); } /* Prevent sticky hover on mobile */
+.key:hover, .key:active {
+  background-color: var(--glass-surface);
+  transform: none;
+}
 
 .key-digit { font-size: 34px; font-weight: 400; line-height: 1; margin-bottom: 2px; pointer-events: none; }
 .key-sub { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; pointer-events: none; }
 .key.empty { visibility: hidden; pointer-events: none; }
 
-/* DIALER */
 .dialer-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.3s ease-out; }
 .dialer-screen.active { transform: translateY(0); }
 .dialer-display { flex: 1; display: flex; align-items: flex-end; justify-content: center; font-size: 38px; font-weight: 400; padding-bottom: 40px; color: #fff; letter-spacing: 1px; }
@@ -156,14 +172,12 @@ main {
 .tab-item.selected { color: var(--accent-blue); }
 .tab-icon { font-size: 22px; }
 
-/* FOOTER */
 .lock-footer-banner { position: absolute; bottom: 0; left: 0; width: 100%; padding: 0 40px; padding-bottom: max(35px, env(safe-area-inset-bottom)); height: 100px; display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none; }
 .footer-button { font-size: 16px; font-weight: 600; cursor: pointer; color: #fff; padding: 10px; pointer-events: auto; }
 
-/* SETTINGS */
 .settings-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: flex-end; justify-content: center; }
 .settings-overlay.open { opacity: 1; pointer-events: auto; }
-.settings-sheet { width: 95%; max-width: 400px; background: #1C1C1E; border-radius: 20px 20px 0 0; padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); max-height: 90dvh; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.5); border-top: 1px solid rgba(255,255,255,0.1); color: #fff; }
+.settings-sheet { width: 95%; max-width: 400px; background: #1C1C1E; border-radius: 20px 20px 0 0; padding: 20px; padding-bottom: 40px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.5); border-top: 1px solid rgba(255,255,255,0.1); color: #fff; }
 .settings-overlay.open .settings-sheet { transform: translateY(0); }
 .sheet-header { margin-bottom: 15px; }
 .sheet-title { font-size: 20px; font-weight: 700; }
@@ -189,15 +203,13 @@ main {
 .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
 input:checked + .slider { background-color: var(--accent-green); }
 input:checked + .slider:before { transform: translateX(20px); }
-
-/* Credits & Guide Scroll */
 .credits-sub { text-align: center; font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 15px; }
 .upload-btn { background: var(--accent-blue); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; }
 
 #tab-guide {
-  max-height: 50vh; 
-  overflow-y: auto; 
-  -webkit-overflow-scrolling: touch; 
-  padding-bottom: 20px; 
-  overscroll-behavior: contain;
+  max-height: 50vh;             /* Limits height to 50% of screen */
+  overflow-y: auto;             /* Adds scrollbar when needed */
+  -webkit-overflow-scrolling: touch; /* Makes scrolling smooth on iPhone */
+  padding-bottom: 20px;         /* Extra space at the bottom */
+  overscroll-behavior: contain; /* Prevents scrolling the background */
 }
