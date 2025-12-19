@@ -16,16 +16,14 @@
 * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 
 html, body {
-  position: fixed; /* Freezes the window size */
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100%; 
-  height: 100%; /* Matches the VISIBLE screen only */
   margin: 0; padding: 0;
   background: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font-stack);
   overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
+  position: fixed; /* This locks the window */
+  width: 100%;
+  height: 100%;
   z-index: 0;
 }
 
@@ -33,7 +31,7 @@ html, body {
   position: fixed;
   top: 0; left: 0;
   width: 100vw;
-  height: 100vh; /* Stays tall behind the address bar */
+  height: 120vh; /* Extra tall to ensure no bottom crop ever */
   z-index: -1; 
   pointer-events: none;
   background: #000;
@@ -56,7 +54,7 @@ html, body {
   position: absolute;
   top: 0; left: 0;
   width: 100%; 
-  height: 100%; /* Fits inside the fixed body perfectly */
+  height: 100%; /* Matches the fixed body exactly */
   overflow: hidden; 
   z-index: 1;
 }
