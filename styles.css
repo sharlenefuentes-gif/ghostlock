@@ -17,35 +17,37 @@
 
 html, body {
   margin: 0; padding: 0;
-  width: 100%; height: 100%;
-  position: fixed; 
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-stack);
   overflow: hidden;
-  background: #000;
-  /* These 3 lines stop the iPhone from zooming or bouncing */
-  touch-action: none;
-  -webkit-text-size-adjust: none;
-  overscroll-behavior: none;
+  position: fixed; /* This locks the window */
+  width: 100%;
+  height: 100%;
+  z-index: 0;
 }
 
 #bgContainer {
   position: fixed;
   top: 0; left: 0;
   width: 100vw;
-  /* 110vh makes it slightly taller than the screen to ensure NO bottom crop */
-  height: 110vh; 
+  height: 120vh; /* Extra tall to ensure no bottom crop ever */
   z-index: -1; 
   pointer-events: none;
   background: #000;
-  /* This ensures the image covers the extra space without stretching weirdly */
-  object-fit: cover; 
+  transform: translateZ(0);
 }
 
 #wallpaperImg {
   width: 100%; 
   height: 100%;
+  /* 'cover' crops the image to fill screen without distortion. 
+     'center' keeps the middle of the photo visible. */
   object-fit: cover; 
   object-position: center;
   display: block;
+  /* Prevent flickering on some iOS versions */
+  will-change: transform;
 }
 
 .app { 
