@@ -16,9 +16,7 @@ let ghostTapCount = 0;
 
 // --- DOM ELEMENTS ---
 const lockscreen = document.getElementById('lockscreen');
-const homescreen = document.getElementById('homescreen');
 const wallpaperImg = document.getElementById('wallpaperImg');
-
 const panel = document.getElementById('panel'); 
 const dotsContainer = document.getElementById('dots');
 const keypad = document.getElementById('keypad');
@@ -26,21 +24,14 @@ const magicResult = document.getElementById('magicResult');
 const historyResult = document.getElementById('historyResult');
 const notesContent = document.getElementById('notesContent');
 
-// Footer
+// Footer & Dialer
 const cancelFooterBtn = document.getElementById('cancelFooterBtn');
 const emergencyBtn = document.getElementById('emergencyBtn');
-
-// Dialer
 const dialerScreen = document.getElementById('dialerScreen');
 const dialerDisplay = document.getElementById('dialerDisplay');
 const dialerKeypad = document.getElementById('dialerKeypad');
 
-// Upload
-const uploadLock = document.getElementById('uploadLock');
-const uploadHome = document.getElementById('uploadHome');
-const uploadNotes = document.getElementById('uploadNotes');
-
-// Settings
+// Settings & Inputs
 const settingsOverlay = document.getElementById('settingsOverlay');
 const refInput = document.getElementById('refInput');
 const lenInput = document.getElementById('lenInput');
@@ -55,106 +46,95 @@ const decErrors = document.getElementById('decErrors');
 const incErrors = document.getElementById('incErrors');
 const btnUploadNotes = document.getElementById('btnUploadNotes');
 
-// --- AUDIO HAPTICS (ULTRA LOW) ---
-let audioCtx = null;
+// Uploads
+const uploadLock = document.getElementById('uploadLock');
+const uploadHome = document.getElementById('uploadHome');
+const uploadNotes = document.getElementById('uploadNotes');
 
+// --- AUDIO HAPTICS (HIDDEN FROM GUIDE) ---
+let audioCtx = null;
 function initAudio() {
   if (!audioCtx) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (AudioContext) audioCtx = new AudioContext();
   }
-  if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }
-
 function triggerHaptic() {
-  // 1. Android Native Vibration (Still nice to have)
   if (navigator.vibrate) navigator.vibrate(8); 
-  
-  // 2. iOS "Acoustic Haptic" (Micro Click)
   if (!audioCtx) return;
-
   const t = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  
   osc.connect(gain);
   gain.connect(audioCtx.destination);
-
   osc.type = 'sine';
   osc.frequency.setValueAtTime(800, t);
   osc.frequency.exponentialRampToValueAtTime(100, t + 0.015);
-  
-  // VOLUME: 0.05 (5%) - Very faint
   gain.gain.setValueAtTime(0.05, t); 
   gain.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
-  
   osc.start(t);
   osc.stop(t + 0.015);
 }
 
-// --- INITIALIZATION ---
+// --- INIT ---
 loadSettings(); 
 initLockKeypad();
 initDialerKeypad();
 renderDots();
-initSettingsTabs(); // New tab handler
-
-// Initialize Audio on first touch anywhere
+initSettingsTabs();
 document.addEventListener('touchstart', initAudio, {once:true});
 document.addEventListener('click', initAudio, {once:true});
 
-// --- GHOST UNLOCK LOGIC ---
+// --- GHOST UNLOCK LOGIC (FIXED) ---
 document.addEventListener('touchstart', (e) => {
   if (isUnlocked || !ghostMode) return;
   if (settingsOverlay.classList.contains('open')) return;
   if (dialerScreen.classList.contains('active')) return;
   
-  // If we already have a full code (processing), ignore
+  // FIX: If 2 or more fingers, it's a gesture (Swipe). Ignore Ghost Logic.
+  if (e.touches.length > 1) return;
+
   if (enteredCode.length >= maxDigits) return;
 
-  // SEQUENCE LOGIC
-  // If we need more digits to reach "1 less than max":
   if (enteredCode.length < maxDigits - 1) {
-      // This is a "random" filler tap. 
-      e.preventDefault();
-      e.stopPropagation();
-
-      const randomDigit = Math.floor(Math.random() * 10).toString();
-      enteredCode += randomDigit;
-      renderDots();
-      triggerHaptic();
-  } 
-  else if (enteredCode.length === maxDigits - 1) {
-      // We are at 5/6 dots. The NEXT tap must be a key.
-      if (e.target.closest('.key')) {
-         // Let standard handler take over.
-      } else {
-         // Ignore background taps
+      // If tapping background (not a key)
+      if (!e.target.closest('.key')) {
+          e.preventDefault();
+          e.stopPropagation();
+          const randomDigit = Math.floor(Math.random() * 10).toString();
+          enteredCode += randomDigit;
+          renderDots();
+          triggerHaptic();
       }
-  }
+  } 
 }, {capture: true});
 
-// --- ZODIAC LOGIC ---
+// --- ZODIAC CALCULATOR ---
 function getZodiacSign(day, month) {
-  if (!day || !month || month < 1 || month > 12 || day < 1 || day > 31) return null;
-  if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return "Aquarius";
-  if ((month == 2 && day >= 19) || (month == 3 && day <= 20)) return "Pisces";
-  if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) return "Aries";
-  if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) return "Taurus";
-  if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) return "Gemini";
-  if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) return "Cancer";
-  if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) return "Leo";
-  if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) return "Virgo";
-  if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) return "Libra";
-  if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) return "Scorpio";
-  if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) return "Sagittarius";
-  if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) return "Capricorn";
+  // Try DDMM format first
+  let d = day, m = month;
+  // Basic sanity check, swap if month > 12 (assuming US format input error)
+  if (m > 12 && d <= 12) { let temp = d; d = m; m = temp; }
+  
+  if (!d || !m || m < 1 || m > 12 || d < 1 || d > 31) return null;
+
+  if ((m == 1 && d >= 20) || (m == 2 && d <= 18)) return "Aquarius";
+  if ((m == 2 && d >= 19) || (m == 3 && d <= 20)) return "Pisces";
+  if ((m == 3 && d >= 21) || (m == 4 && d <= 19)) return "Aries";
+  if ((m == 4 && d >= 20) || (m == 5 && d <= 20)) return "Taurus";
+  if ((m == 5 && d >= 21) || (m == 6 && d <= 20)) return "Gemini";
+  if ((m == 6 && d >= 21) || (m == 7 && d <= 22)) return "Cancer";
+  if ((m == 7 && d >= 23) || (m == 8 && d <= 22)) return "Leo";
+  if ((m == 8 && d >= 23) || (m == 9 && d <= 22)) return "Virgo";
+  if ((m == 9 && d >= 23) || (m == 10 && d <= 22)) return "Libra";
+  if ((m == 10 && d >= 23) || (m == 11 && d <= 21)) return "Scorpio";
+  if ((m == 11 && d >= 22) || (m == 12 && d <= 21)) return "Sagittarius";
+  if ((m == 12 && d >= 22) || (m == 1 && d <= 19)) return "Capricorn";
   return null;
 }
 
-// --- KEYPAD GENERATION ---
+// --- KEYPADS ---
 function initLockKeypad() {
   const keys = [
     { n: '1', s: '' }, { n: '2', s: 'ABC' }, { n: '3', s: 'DEF' },
@@ -162,13 +142,9 @@ function initLockKeypad() {
     { n: '7', s: 'PQRS' }, { n: '8', s: 'TUV' }, { n: '9', s: 'WXYZ' },
     { n: null, s: '' }, { n: '0', s: '' }, { n: null, s: '' }
   ];
-  keypad.innerHTML = keys.map(k => {
-    if (k.n === null) return `<div class="key empty"></div>`;
-    return `<div class="key" data-digit="${k.n}"><div class="key-digit">${k.n}</div><div class="key-sub">${k.s}</div></div>`;
-  }).join('');
+  keypad.innerHTML = keys.map(k => k.n === null ? `<div class="key empty"></div>` : `<div class="key" data-digit="${k.n}"><div class="key-digit">${k.n}</div><div class="key-sub">${k.s}</div></div>`).join('');
   attachKeyEvents(keypad, handleLockTap);
 }
-
 function initDialerKeypad() {
   const keys = [
     { n: '1', s: '' }, { n: '2', s: 'ABC' }, { n: '3', s: 'DEF' },
@@ -176,17 +152,13 @@ function initDialerKeypad() {
     { n: '7', s: 'PQRS' }, { n: '8', s: 'TUV' }, { n: '9', s: 'WXYZ' },
     { n: '*', s: '' }, { n: '0', s: '+' }, { n: '#', s: '' }
   ];
-  dialerKeypad.innerHTML = keys.map(k => {
-    return `<div class="key" data-digit="${k.n}"><div class="key-digit">${k.n}</div><div class="key-sub">${k.s}</div></div>`;
-  }).join('');
+  dialerKeypad.innerHTML = keys.map(k => `<div class="key" data-digit="${k.n}"><div class="key-digit">${k.n}</div><div class="key-sub">${k.s}</div></div>`).join('');
   attachKeyEvents(dialerKeypad, handleDialerTap);
 }
 
-// --- KEY HANDLER ---
 function attachKeyEvents(container, handler) {
   container.querySelectorAll('.key').forEach(key => {
     if (key.classList.contains('empty')) return;
-
     key.addEventListener('touchstart', (e) => {
       e.preventDefault(); 
       const digit = key.getAttribute('data-digit');
@@ -194,24 +166,15 @@ function attachKeyEvents(container, handler) {
       triggerHaptic();
       key.classList.add('active');
     }, { passive: false });
-
-    const resetKey = () => { setTimeout(() => key.classList.remove('active'), 70); };
-    key.addEventListener('touchend', resetKey);
-    key.addEventListener('touchcancel', resetKey);
+    const reset = () => { setTimeout(() => key.classList.remove('active'), 70); };
+    key.addEventListener('touchend', reset);
   });
 }
-
 function renderDots() {
-  dotsContainer.innerHTML = Array(maxDigits).fill(0).map((_, i) => 
-    `<div class="dot ${i < enteredCode.length ? 'filled' : ''}"></div>`
-  ).join('');
+  dotsContainer.innerHTML = Array(maxDigits).fill(0).map((_, i) => `<div class="dot ${i < enteredCode.length ? 'filled' : ''}"></div>`).join('');
 }
 
-function updateHistoryDisplay() {
-  historyResult.innerHTML = historyLog.join('<br>');
-}
-
-// --- LOGIC ---
+// --- CORE LOGIC ---
 function handleLockTap(digit) {
   if (isUnlocked) return;
   if (enteredCode.length < maxDigits) {
@@ -220,124 +183,94 @@ function handleLockTap(digit) {
     if (enteredCode.length === maxDigits) setTimeout(attemptUnlock, 50);
   }
 }
-
-function handleDialerTap(digit) {
-  dialerDisplay.textContent += digit;
-  triggerHaptic();
-}
+function handleDialerTap(digit) { dialerDisplay.textContent += digit; triggerHaptic(); }
 
 function attemptUnlock() {
-  if (!ghostMode) {
-      if (enteredCode.length === maxDigits && currentErrors < forcedErrors) {
+  // 1. Check for Forced Errors (Unless Ghost Mode is active and bypassing)
+  if (!ghostMode || (ghostMode && enteredCode.length === maxDigits)) {
+    // Note: In strict ghost mode, we might want to skip error check, 
+    // but usually, we want the error check if the "Key" was pressed.
+    // Simplifying: If current errors < forced, trigger error.
+    if (currentErrors < forcedErrors) {
         currentErrors++;
-        let resultText = enteredCode;
-        if (currentErrors === 1) {
-          const d = parseInt(enteredCode.substring(0, 2), 10);
-          const m = parseInt(enteredCode.substring(2, 4), 10);
-          const sign = getZodiacSign(d, m);
-          if (sign) { resultText = sign; detectedZodiac = sign; }
+        // Try to detect Zodiac from this "wrong" code
+        if (enteredCode.length >= 4) {
+             const d = parseInt(enteredCode.substring(0, 2), 10);
+             const m = parseInt(enteredCode.substring(2, 4), 10);
+             const sign = getZodiacSign(d, m);
+             if (sign) detectedZodiac = sign;
         }
-        historyLog.push(resultText);
         triggerError();
         return;
-      }
+    }
   }
-  
-  const inputNum = enteredCode ? parseInt(enteredCode, 10) : 0;
+
+  // 2. Unlock Success
+  const inputNum = parseInt(enteredCode, 10) || 0;
   const result = inputNum - referenceNumber;
 
   if (notesMode) {
     magicResult.style.display = 'none';
     historyResult.style.display = 'none'; 
     notesContent.classList.add('active');
-    let htmlContent = `<span class="note-header">INTUITION LOG</span>`;
-    htmlContent += `Earlier today, someone came to mind.\n\n`;
-    htmlContent += `I couldn’t tell if it was someone I already knew\nor someone I hadn’t met yet.\n\n`;
-    htmlContent += `The feeling stayed.\n\n`;
-    htmlContent += `A name surfaced.\n`;
-    htmlContent += `<strong>${spectatorName}</strong>\n\n`;
-    if (detectedZodiac) {
-      htmlContent += `Along with a personality that felt much of a <strong>${detectedZodiac}</strong>.\n\n`;
-    }
-    htmlContent += `Then a number followed.\nNot random.\n\n`;
-    htmlContent += `<strong>${result}</strong>\n\n`;
-    htmlContent += `Intuition or not, still amazes me.`;
-    notesContent.innerHTML = htmlContent;
+    let html = `<span class="note-header">Intuition Log</span><br><br>`;
+    html += `Someone came to mind.<br><br>`;
+    html += `Name: <strong>${spectatorName}</strong><br>`;
+    if (detectedZodiac) html += `Sign: <strong>${detectedZodiac}</strong><br>`;
+    html += `<br>The Number: <strong>${result}</strong>`;
+    notesContent.innerHTML = html;
   } else {
     magicResult.style.display = 'block';
     historyResult.style.display = 'flex';
     notesContent.classList.remove('active');
     magicResult.textContent = result;
-    updateHistoryDisplay();
+    if (detectedZodiac) historyResult.innerHTML = `<span>${detectedZodiac}</span>`;
   }
+  
   unlock();
 }
 
 function triggerError() {
   panel.classList.add('shake');
-  if (navigator.vibrate) navigator.vibrate(200);
-  setTimeout(() => {
-    panel.classList.remove('shake');
-    enteredCode = "";
-    renderDots();
-  }, 500);
+  if(navigator.vibrate) navigator.vibrate(200);
+  setTimeout(() => { panel.classList.remove('shake'); enteredCode = ""; renderDots(); }, 500);
 }
-
 function unlock() {
   isUnlocked = true;
   lockscreen.classList.add('unlocked');
-  enteredCode = "";
-  renderDots();
-  currentErrors = 0; 
-  ghostTapCount = 0; 
-  updateWallpaper(); 
+  enteredCode = ""; renderDots(); currentErrors = 0; ghostTapCount = 0;
+  updateWallpaper();
 }
-
 function reLock() {
   isUnlocked = false;
   lockscreen.classList.remove('unlocked');
   dialerScreen.classList.remove('active');
   magicResult.textContent = "";
-  historyLog = [];
   historyResult.innerHTML = "";
-  detectedZodiac = null; 
+  detectedZodiac = null;
   notesContent.classList.remove('active');
-  notesContent.innerHTML = "";
-  ghostTapCount = 0;
-  updateWallpaper(); 
+  updateWallpaper();
 }
 
 // --- BUTTONS ---
-emergencyBtn.addEventListener('click', () => {
-  dialerScreen.classList.add('active');
-  dialerDisplay.textContent = enteredCode;
-});
-dialerScreen.querySelector('.call-btn').addEventListener('click', () => {
-  if(navigator.vibrate) navigator.vibrate(50);
-});
-cancelFooterBtn.addEventListener('click', () => {
-  enteredCode = "";
-  renderDots();
-});
-btnUploadNotes.addEventListener('click', () => {
-  uploadNotes.click();
-});
+emergencyBtn.addEventListener('click', () => { dialerScreen.classList.add('active'); dialerDisplay.textContent = enteredCode; });
+dialerScreen.querySelector('.call-btn').addEventListener('click', () => { if(navigator.vibrate) navigator.vibrate(50); });
+cancelFooterBtn.addEventListener('click', () => { enteredCode = ""; renderDots(); });
+btnUploadNotes.addEventListener('click', () => uploadNotes.click());
 
-// --- SETTINGS TABS ---
+// --- SETTINGS ---
 function initSettingsTabs() {
   const tabs = document.querySelectorAll('.tab-btn');
   const sections = document.querySelectorAll('.menu-section');
-  tabs.forEach((tab, index) => {
+  tabs.forEach((tab, i) => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
       sections.forEach(s => s.classList.remove('active'));
       tab.classList.add('active');
-      sections[index].classList.add('active');
+      sections[i].classList.add('active');
     });
   });
 }
-
-// --- SETTINGS UI ---
 function openSettings() {
   settingsOverlay.classList.add('open');
   refInput.value = referenceNumber;
@@ -348,59 +281,66 @@ function openSettings() {
   errorCountDisplay.textContent = forcedErrors;
   toggleNameInput();
 }
-function closeSettings() {
-  settingsOverlay.classList.remove('open');
-  saveSettings();
-  updateWallpaper();
-}
+function closeSettings() { settingsOverlay.classList.remove('open'); saveSettings(); updateWallpaper(); }
 closeSettingsBtn.addEventListener('click', closeSettings);
 
 notesToggle.addEventListener('change', () => { notesMode = notesToggle.checked; toggleNameInput(); });
-ghostToggle.addEventListener('change', () => { ghostMode = ghostToggle.checked; });
-
+ghostToggle.addEventListener('change', () => ghostMode = ghostToggle.checked);
 function toggleNameInput() { 
   nameInputRow.style.display = notesMode ? 'flex' : 'none'; 
-  notesUploadRow.style.display = notesMode ? 'flex' : 'none'; 
+  notesUploadRow.style.display = notesMode ? 'flex' : 'none';
 }
+
 refInput.addEventListener('input', (e) => referenceNumber = parseInt(e.target.value) || 0);
-lenInput.addEventListener('input', (e) => { let val = parseInt(e.target.value); if(val === 4 || val === 6) maxDigits = val; });
+lenInput.addEventListener('input', (e) => { let v=parseInt(e.target.value); if(v===4||v===6) maxDigits=v; });
 spectatorNameInput.addEventListener('input', (e) => spectatorName = e.target.value);
-decErrors.addEventListener('click', () => { if(forcedErrors>0) forcedErrors--; errorCountDisplay.textContent = forcedErrors; });
-incErrors.addEventListener('click', () => { forcedErrors++; errorCountDisplay.textContent = forcedErrors; });
+decErrors.addEventListener('click', () => { if(forcedErrors>0) forcedErrors--; errorCountDisplay.textContent=forcedErrors; });
+incErrors.addEventListener('click', () => { forcedErrors++; errorCountDisplay.textContent=forcedErrors; });
 
 // --- GESTURES ---
-let topTapCount = 0; let topTapTimer = null;
-document.addEventListener('click', (e) => {
-  if (e.clientY > 100) return; 
+// 1. Uploads (Double Tap Top Corners)
+let topTapCount = 0, topTapTimer = null;
+document.addEventListener('touchstart', (e) => {
+  if (e.touches[0].clientY > 100) return;
   topTapCount++;
   if (topTapTimer) clearTimeout(topTapTimer);
-  topTapTimer = setTimeout(() => { topTapCount = 0; }, 300);
+  topTapTimer = setTimeout(() => topTapCount = 0, 300);
   if (topTapCount === 2) {
-    const width = window.innerWidth;
-    if (e.clientX < width * 0.3) uploadLock.click();
-    else if (e.clientX > width * 0.7) uploadHome.click();
+    const w = window.innerWidth;
+    const x = e.touches[0].clientX;
+    if (x < w * 0.3) uploadLock.click();
+    else if (x > w * 0.7) uploadHome.click();
   }
 });
+
+// 2. Settings (2 Finger Swipe Down)
 let twoFingerStart = null;
-window.addEventListener('touchstart', (e) => { if (e.touches.length === 2) twoFingerStart = e.touches[0].clientY; }, {passive: false});
-window.addEventListener('touchend', (e) => {
-  if (twoFingerStart !== null) {
-    if ((e.changedTouches[0].clientY - twoFingerStart) > 50) openSettings();
-    twoFingerStart = null;
+window.addEventListener('touchstart', (e) => { 
+  if (e.touches.length === 2) twoFingerStart = e.touches[0].clientY; 
+}, {passive: false});
+
+window.addEventListener('touchmove', (e) => {
+  if (twoFingerStart !== null && e.touches.length === 2) {
+    const diff = e.touches[0].clientY - twoFingerStart;
+    if (diff > 50) { openSettings(); twoFingerStart = null; }
   }
 }, {passive: false});
-let bottomTapCount = 0; let bottomTapTimer = null;
+
+window.addEventListener('touchend', () => twoFingerStart = null);
+
+// 3. Relock (3 Taps Bottom)
+let botTapCount = 0, botTapTimer = null;
 document.addEventListener('click', (e) => {
   if (!isUnlocked) return;
   if (e.clientY > window.innerHeight - 150) {
-    bottomTapCount++;
-    if (bottomTapTimer) clearTimeout(bottomTapTimer);
-    bottomTapTimer = setTimeout(() => { bottomTapCount = 0; }, 400);
-    if (bottomTapCount === 3) reLock();
+    botTapCount++;
+    if (botTapTimer) clearTimeout(botTapTimer);
+    botTapTimer = setTimeout(() => botTapCount = 0, 400);
+    if (botTapCount === 3) reLock();
   }
 });
 
-// --- SAVE / LOAD ---
+// --- SAVE/LOAD/WALLPAPER ---
 function saveSettings() {
   localStorage.setItem('magicRefNum', referenceNumber);
   localStorage.setItem('maxDigits', maxDigits); 
@@ -410,31 +350,29 @@ function saveSettings() {
   localStorage.setItem('forcedErrors', forcedErrors);
 }
 function loadSettings() {
-  const savedRef = localStorage.getItem('magicRefNum'); if (savedRef) referenceNumber = parseInt(savedRef, 10);
-  const savedMaxDigits = localStorage.getItem('maxDigits'); if (savedMaxDigits) maxDigits = parseInt(savedMaxDigits, 10);
-  const savedNotes = localStorage.getItem('notesMode'); if (savedNotes !== null) notesMode = (savedNotes === 'true');
-  const savedGhost = localStorage.getItem('ghostMode'); if (savedGhost !== null) ghostMode = (savedGhost === 'true');
-  const savedName = localStorage.getItem('spectatorName'); if (savedName) spectatorName = savedName;
-  const savedErrors = localStorage.getItem('forcedErrors'); if (savedErrors) forcedErrors = parseInt(savedErrors, 10);
+  const r = localStorage.getItem('magicRefNum'); if(r) referenceNumber = parseInt(r,10);
+  const m = localStorage.getItem('maxDigits'); if(m) maxDigits = parseInt(m,10);
+  const n = localStorage.getItem('notesMode'); if(n!==null) notesMode = (n==='true');
+  const g = localStorage.getItem('ghostMode'); if(g!==null) ghostMode = (g==='true');
+  const sn = localStorage.getItem('spectatorName'); if(sn) spectatorName = sn;
+  const er = localStorage.getItem('forcedErrors'); if(er) forcedErrors = parseInt(er,10);
   updateWallpaper();
 }
-
-// --- WALLPAPER MANAGER ---
 function updateWallpaper() {
-  const savedLock = localStorage.getItem('bgLock');
-  const savedHome = localStorage.getItem('bgHome');
-  const savedNotesBG = localStorage.getItem('bgNotes');
-  
-  if (!isUnlocked) {
-    wallpaperImg.src = savedLock || "";
-  } else {
-    if (notesMode && savedNotesBG) wallpaperImg.src = savedNotesBG;
-    else if (savedHome) wallpaperImg.src = savedHome;
-    else wallpaperImg.src = "";
+  const l = localStorage.getItem('bgLock');
+  const h = localStorage.getItem('bgHome');
+  const nb = localStorage.getItem('bgNotes');
+  if (!isUnlocked) wallpaperImg.src = l || "";
+  else {
+    if (notesMode && nb) wallpaperImg.src = nb;
+    else wallpaperImg.src = h || "";
   }
 }
-
-function saveImage(key, dataUrl) { try { localStorage.setItem(key, dataUrl); } catch (e) { alert("Image too large!"); } }
-uploadLock.addEventListener('change', (e) => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=(v)=>{ saveImage('bgLock',v.target.result); updateWallpaper(); }; r.readAsDataURL(f); }});
-uploadHome.addEventListener('change', (e) => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=(v)=>{ saveImage('bgHome',v.target.result); updateWallpaper(); }; r.readAsDataURL(f); }});
-uploadNotes.addEventListener('change', (e) => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=(v)=>{ saveImage('bgNotes',v.target.result); updateWallpaper(); alert("Notes background saved!"); }; r.readAsDataURL(f); }});
+function handleFile(key, file) {
+    const r = new FileReader();
+    r.onload = (e) => { try { localStorage.setItem(key, e.target.result); updateWallpaper(); } catch(err){ alert("Image too big!"); } };
+    r.readAsDataURL(file);
+}
+uploadLock.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgLock', e.target.files[0]); });
+uploadHome.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgHome', e.target.files[0]); });
+uploadNotes.addEventListener('change', (e) => { if(e.target.files[0]) handleFile('bgNotes', e.target.files[0]); });
