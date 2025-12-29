@@ -59,7 +59,7 @@ const uploadLock = document.getElementById('uploadLock');
 const uploadHome = document.getElementById('uploadHome');
 const uploadNotes = document.getElementById('uploadNotes');
 
-// --- AUDIO HAPTICS ---
+// --- AUDIO HAPTICS (MODIFIED) ---
 let audioCtx = null;
 
 function ensureAudioContext() {
@@ -73,7 +73,17 @@ function ensureAudioContext() {
 }
 
 function triggerHaptic() {
+  // 1. Android System Vibration
   if (navigator.vibrate) navigator.vibrate(8); 
+
+  // 2. iOS Switch Hack (The "Click") - NEW ADDITION
+  // This toggles the invisible checkbox we added to HTML to trick Safari
+  const switchEl = document.getElementById('haptic-switch');
+  if (switchEl) {
+    switchEl.checked = !switchEl.checked; 
+  }
+
+  // 3. Audio Rumble (The "Thump") - EXISTING LOGIC
   ensureAudioContext(); 
   if (!audioCtx) return;
 
@@ -84,6 +94,7 @@ function triggerHaptic() {
   osc.connect(gain);
   gain.connect(audioCtx.destination);
   
+  // A low 800Hz->100Hz drop feels like a "Thud"
   osc.type = 'sine';
   osc.frequency.setValueAtTime(800, t);
   osc.frequency.exponentialRampToValueAtTime(100, t + 0.015);
@@ -118,7 +129,7 @@ document.addEventListener('touchstart', (e) => {
           const randomDigit = Math.floor(Math.random() * 10).toString();
           enteredCode += randomDigit;
           renderDots();
-          triggerHaptic();
+          triggerHaptic(); // This will now trigger the "Click" too!
       }
   } 
 }, {capture: true});
@@ -174,7 +185,7 @@ function attachKeyEvents(container, handler) {
       ensureAudioContext(); 
       const digit = key.getAttribute('data-digit');
       handler(digit);
-      triggerHaptic();
+      triggerHaptic(); // Triggers the click/rumble
       key.classList.add('active');
     }, { passive: false });
     const reset = () => { setTimeout(() => key.classList.remove('active'), 70); };
@@ -265,7 +276,7 @@ function reLock() {
 
 // --- BUTTONS ---
 emergencyBtn.addEventListener('click', () => { dialerScreen.classList.add('active'); dialerDisplay.textContent = enteredCode; });
-dialerScreen.querySelector('.call-btn').addEventListener('click', () => { if(navigator.vibrate) navigator.vibrate(50); });
+dialerScreen.querySelector('.call-btn').addEventListener('click', () => { triggerHaptic(); }); // Added haptic here too
 cancelFooterBtn.addEventListener('click', () => { enteredCode = ""; renderDots(); });
 
 // Upload Buttons
